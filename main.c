@@ -19,7 +19,11 @@
 /*********************
  *      DEFINES
  *********************/
-
+lv_obj_t *Btn_OK;
+lv_obj_t *Btn_BACK;
+lv_obj_t *Btn_DOWN;
+lv_obj_t *Btn_UP;
+lv_obj_t *Bg;
 /**********************
  *      TYPEDEFS
  **********************/
@@ -35,6 +39,10 @@ static int tick_thread(void *data);
  **********************/
 
 
+//  https://www.cnblogs.com/frozencandles/p/16375392.html
+
+
+
 lv_event_cb_t OKKeyProcess(lv_event_t *Event)
 {
     lv_event_code_t Code = lv_event_get_code(Event);
@@ -42,6 +50,7 @@ lv_event_cb_t OKKeyProcess(lv_event_t *Event)
     if( Code == LV_EVENT_CLICKED)
     {
         printf("OK !! \r\n");
+        lv_obj_set_style_bg_color(Bg,lv_color_white(),LV_PART_MAIN);
     }
 }
 
@@ -50,9 +59,12 @@ lv_event_cb_t DownKeyProcess(lv_event_t *Event)
 {
     lv_event_code_t Code = lv_event_get_code(Event);
 
+    lv_obj_t *Target = lv_event_get_target(Event);
+
     if( Code == LV_EVENT_CLICKED)
     {
         printf("Down !! \r\n");
+        lv_obj_set_style_bg_color(Bg,lv_palette_main(LV_PALETTE_GREEN),LV_PART_MAIN);
     }
 }
 
@@ -63,6 +75,7 @@ lv_event_cb_t UpKeyProcess(lv_event_t *Event)
     if( Code == LV_EVENT_CLICKED)
     {
         printf("Up !! \r\n");
+        lv_obj_set_style_bg_color(Bg,lv_palette_main(LV_PALETTE_BLUE),LV_PART_MAIN);
     }
 }
 
@@ -73,6 +86,7 @@ lv_event_cb_t BackKeyProcess(lv_event_t *Event)
     if( Code == LV_EVENT_CLICKED)
     {
         printf("Back !! \r\n");
+        lv_obj_set_style_bg_color(Bg,lv_color_black(),LV_PART_MAIN);
     }
 }
 
@@ -107,9 +121,9 @@ void Btn()
 }
 
 
-void  Btn_OK()
+void KeyBtn_OK()
 {
-    lv_obj_t *Btn_OK = lv_btn_create(lv_scr_act());
+    Btn_OK = lv_btn_create(lv_scr_act());
     lv_obj_t *Lable = lv_label_create(Btn_OK);
 
     lv_obj_set_size(Btn_OK,50,20);
@@ -129,9 +143,9 @@ void  Btn_OK()
 
 }
 
-void  Btn_BACK()
+void  KeyBtn_BACK()
 {
-    lv_obj_t *Btn_BACK = lv_btn_create(lv_scr_act());
+    Btn_BACK = lv_btn_create(lv_scr_act());
 
     lv_obj_t *Lable = lv_label_create(Btn_BACK);
 
@@ -153,9 +167,9 @@ void  Btn_BACK()
 
 }
 
-void  Btn_UP()
+void  KeyBtn_UP()
 {
-    lv_obj_t *Btn_UP = lv_btn_create(lv_scr_act());
+    Btn_UP = lv_btn_create(lv_scr_act());
     lv_obj_t *Lable = lv_label_create(Btn_UP);
 
     lv_obj_set_size(Btn_UP,50,20);
@@ -177,12 +191,9 @@ void  Btn_UP()
 
 
 
-
-
-
-void  Btn_DOWN()
+void  KeyBtn_DOWN()
 {
-    lv_obj_t *Btn_DOWN = lv_btn_create(lv_scr_act());
+    Btn_DOWN = lv_btn_create(lv_scr_act());
     lv_obj_t *Lable = lv_label_create(Btn_DOWN);
 
     lv_obj_set_size(Btn_DOWN,50,20);
@@ -200,16 +211,25 @@ void  Btn_DOWN()
     lv_obj_set_align(Lable,LV_ALIGN_CENTER);
 
     lv_obj_add_event_cb(Btn_DOWN, DownKeyProcess ,LV_EVENT_CLICKED,NULL);
+
 }
 
 
 void BackGroung()
 {
-    lv_obj_t *Bg = lv_obj_create(lv_scr_act());
-     lv_obj_set_size(Bg,240,240);
-    lv_obj_set_style_bg_color(Bg,lv_color_black(),LV_PART_MAIN);
-    lv_obj_set_style_bg_grad_color(Bg, lv_palette_main(LV_PALETTE_GREY), 0);
-    lv_obj_set_style_bg_grad_dir(Bg, LV_GRAD_DIR_VER, 0);
+    Bg = lv_obj_create(lv_scr_act());
+    lv_obj_set_size(Bg,240,240);
+    lv_obj_set_style_bg_color(Bg,lv_color_white(),LV_PART_MAIN);
+    lv_obj_set_style_radius(Bg,10,LV_PART_MAIN);
+    // lv_obj_set_style_bg_grad_color(Bg, lv_palette_main(LV_PALETTE_GREY), 0);
+    // lv_obj_set_style_bg_grad_dir(Bg, LV_GRAD_DIR_VER, 0);
+
+
+//    lv_obj_t *boxPad = lv_canvas_create(lv_scr_act());
+//    lv_obj_set_size(boxPad,20,20);
+   
+
+
 }
 
 
@@ -217,10 +237,10 @@ void BackGroung()
 
 void Btn_4()
 {
-    Btn_OK();
-    Btn_BACK();
-    Btn_UP();
-    Btn_DOWN();
+    KeyBtn_OK();
+    KeyBtn_BACK();
+    KeyBtn_UP();
+    KeyBtn_DOWN();
     Btn();
 }
 
