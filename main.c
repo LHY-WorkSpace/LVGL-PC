@@ -24,6 +24,7 @@ lv_obj_t *Btn_BACK;
 lv_obj_t *Btn_DOWN;
 lv_obj_t *Btn_UP;
 lv_obj_t *Bg;
+lv_obj_t *Roll;
 /**********************
  *      TYPEDEFS
  **********************/
@@ -76,6 +77,7 @@ lv_event_cb_t UpKeyProcess(lv_event_t *Event)
     {
         printf("Up !! \r\n");
         lv_obj_set_style_bg_color(Bg,lv_palette_main(LV_PALETTE_BLUE),LV_PART_MAIN);
+        // lv_obj_add_flag(Roll,LV_OBJ_FLAG_SCROLL_ONE);
     }
 }
 
@@ -218,12 +220,27 @@ void  KeyBtn_DOWN()
 
 }
 
+//¹ö¶¯Ìõ
+void Roller()
+{
+    Roll = lv_roller_create(lv_scr_act());
+    lv_obj_set_size(Roll,100,100);
+    lv_obj_set_pos(Roll,0,0);
+    lv_obj_set_style_bg_color(Roll,lv_color_black(),LV_PART_MAIN);
+    lv_obj_set_style_border_width(Roll,0,LV_PART_MAIN);
+    // lv_obj_set_align(Roll,LV_ALIGN_CENTER);
+    // lv_obj_add_event_cb();
+
+}
+
+
+
 
 void BackGroung()
 {
     Bg = lv_obj_create(lv_scr_act());
     lv_obj_set_size(Bg,240,240);
-    lv_obj_set_style_bg_color(Bg,lv_color_white(),LV_PART_MAIN);
+    lv_obj_set_style_bg_color(Bg,lv_color_black(),LV_PART_MAIN);
     lv_obj_set_style_radius(Bg,10,LV_PART_MAIN);
     // lv_obj_set_style_bg_grad_color(Bg, lv_palette_main(LV_PALETTE_GREY), 0);
     // lv_obj_set_style_bg_grad_dir(Bg, LV_GRAD_DIR_VER, 0);
@@ -236,16 +253,19 @@ void BackGroung()
 
 }
 
+// void Line()
 
 
 
 void Btn_4()
 {
+   // Roller();
+
     KeyBtn_OK();
     KeyBtn_BACK();
     KeyBtn_UP();
     KeyBtn_DOWN();
-    Btn();
+   // Btn();
 }
 
 
@@ -279,6 +299,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLi
     // Bar_Static();
     BackGroung();
     Btn_4();
+    
     while(!lv_win32_quit_signal) {
         /* Periodically call the lv_task handler.
          * It could be done in a timer interrupt or an OS task too.*/
