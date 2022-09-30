@@ -126,8 +126,8 @@ void KeyBtn_OK()
     Btn_OK = lv_btn_create(lv_scr_act());
     lv_obj_t *Lable = lv_label_create(Btn_OK);
 
-    lv_obj_set_size(Btn_OK,50,20);
-    lv_obj_set_pos(Btn_OK,10,180);
+    lv_obj_set_size(Btn_OK,30,20);
+    lv_obj_set_pos(Btn_OK,5,190);
     lv_obj_set_style_border_side(Btn_OK,LV_BORDER_SIDE_FULL,LV_PART_MAIN);
     lv_obj_set_style_border_width(Btn_OK,2,LV_PART_MAIN);
 
@@ -136,7 +136,8 @@ void KeyBtn_OK()
     lv_obj_set_style_shadow_ofs_y(Btn_OK,2,LV_PART_MAIN );
     lv_obj_set_style_shadow_color(Btn_OK,lv_color_black(),LV_PART_MAIN | LV_STATE_PRESSED);
 
-    lv_label_set_text(Lable,"OK");
+    //lv_label_set_text(Lable,"OK");
+    lv_label_set_text(Lable,LV_SYMBOL_OK);
     lv_obj_set_align(Lable,LV_ALIGN_CENTER);
 
     lv_obj_add_event_cb(Btn_OK, OKKeyProcess ,LV_EVENT_CLICKED,NULL);
@@ -149,8 +150,8 @@ void  KeyBtn_BACK()
 
     lv_obj_t *Lable = lv_label_create(Btn_BACK);
 
-    lv_obj_set_size(Btn_BACK,50,20);
-    lv_obj_set_pos(Btn_BACK,180,180);
+    lv_obj_set_size(Btn_BACK,30,20);
+    lv_obj_set_pos(Btn_BACK,205,190);
     lv_obj_set_style_border_side(Btn_BACK,LV_BORDER_SIDE_FULL,LV_PART_MAIN);
     lv_obj_set_style_border_width(Btn_BACK,2,LV_PART_MAIN);
 
@@ -159,7 +160,8 @@ void  KeyBtn_BACK()
     lv_obj_set_style_shadow_ofs_y(Btn_BACK,2,LV_PART_MAIN );
     lv_obj_set_style_shadow_color(Btn_BACK,lv_color_black(),LV_PART_MAIN | LV_STATE_PRESSED);
 
-    lv_label_set_text(Lable,"Back");
+    // lv_label_set_text(Lable,"Back");
+    lv_label_set_text(Lable,LV_SYMBOL_CLOSE);
     lv_obj_set_align(Lable,LV_ALIGN_CENTER);
 
     lv_obj_add_event_cb(Btn_BACK, BackKeyProcess ,LV_EVENT_CLICKED,NULL);
@@ -172,8 +174,8 @@ void  KeyBtn_UP()
     Btn_UP = lv_btn_create(lv_scr_act());
     lv_obj_t *Lable = lv_label_create(Btn_UP);
 
-    lv_obj_set_size(Btn_UP,50,20);
-    lv_obj_set_pos(Btn_UP,10,210);
+    lv_obj_set_size(Btn_UP,30,20);
+    lv_obj_set_pos(Btn_UP,5,215);
     lv_obj_set_style_border_side(Btn_UP,LV_BORDER_SIDE_FULL,LV_PART_MAIN);
     lv_obj_set_style_border_width(Btn_UP,2,LV_PART_MAIN);
 
@@ -182,7 +184,8 @@ void  KeyBtn_UP()
     lv_obj_set_style_shadow_ofs_y(Btn_UP,2,LV_PART_MAIN );
     lv_obj_set_style_shadow_color(Btn_UP,lv_color_black(),LV_PART_MAIN | LV_STATE_PRESSED);
 
-    lv_label_set_text(Lable,"Up");
+    // lv_label_set_text(Lable,"Up");
+    lv_label_set_text(Lable,LV_SYMBOL_UP);
     lv_obj_set_align(Lable,LV_ALIGN_CENTER);
 
     lv_obj_add_event_cb(Btn_UP, UpKeyProcess ,LV_EVENT_CLICKED,NULL);
@@ -196,8 +199,8 @@ void  KeyBtn_DOWN()
     Btn_DOWN = lv_btn_create(lv_scr_act());
     lv_obj_t *Lable = lv_label_create(Btn_DOWN);
 
-    lv_obj_set_size(Btn_DOWN,50,20);
-    lv_obj_set_pos(Btn_DOWN,180,210);
+    lv_obj_set_size(Btn_DOWN,30,20);
+    lv_obj_set_pos(Btn_DOWN,205,215);
 
     lv_obj_set_style_border_side(Btn_DOWN,LV_BORDER_SIDE_FULL,LV_PART_MAIN);
     lv_obj_set_style_border_width(Btn_DOWN,2,LV_PART_MAIN);
@@ -207,7 +210,8 @@ void  KeyBtn_DOWN()
     lv_obj_set_style_shadow_ofs_y(Btn_DOWN,2,LV_PART_MAIN );
     lv_obj_set_style_shadow_color(Btn_DOWN,lv_color_black(),LV_PART_MAIN | LV_STATE_PRESSED);
 
-    lv_label_set_text(Lable,"Down");
+    // lv_label_set_text(Lable,"Down");
+    lv_label_set_text(Lable,LV_SYMBOL_DOWN);
     lv_obj_set_align(Lable,LV_ALIGN_CENTER);
 
     lv_obj_add_event_cb(Btn_DOWN, DownKeyProcess ,LV_EVENT_CLICKED,NULL);
