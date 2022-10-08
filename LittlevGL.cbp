@@ -40,6 +40,10 @@
 			<Add option="-Wall" />
 			<Add directory="." />
 		</Compiler>
+		<Unit filename="LVGL_UI.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="LVGL_UI.h" />
 		<Unit filename="lv_conf.h" />
 		<Unit filename="lv_drivers/display/ILI9341.h" />
 		<Unit filename="lv_drivers/display/R61581.h" />
