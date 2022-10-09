@@ -1,0 +1,10 @@
+
+创建空文件文件夹并进入
+
+输入 	git clone https://github.com/lvgl/lv_sim_codeblocks_win.git
+
+下载后进入
+
+输入 git submodule update --init --recursive 
+
+

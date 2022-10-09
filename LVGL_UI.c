@@ -15,7 +15,6 @@ lv_obj_t *Btn_OK;
 lv_obj_t *Btn_BACK;
 lv_obj_t *Btn_DOWN;
 lv_obj_t *Btn_UP;
-lv_obj_t *Bg;
 lv_obj_t *Btn;
 
 
@@ -220,7 +219,7 @@ void  KeyBtn_DOWN()
 
 void BackGroung()
 {
-    Bg = lv_obj_create(lv_scr_act());
+    lv_obj_t *Bg = lv_obj_create(lv_scr_act());
     lv_obj_set_size(Bg,240,240);
     lv_obj_set_style_bg_color(Bg,lv_color_black(),LV_PART_MAIN);
     lv_obj_set_style_radius(Bg,0,LV_PART_MAIN);
@@ -248,7 +247,7 @@ static void mask_event_cb(lv_event_t * e)
     static int16_t mask_bottom_id = -1;                 //定义底部遮罩
 
     if (code == LV_EVENT_COVER_CHECK) {                 //事件覆盖检查
-        lv_event_set_cover_res(e, LV_COVER_RES_MASKED); //设置封面检查结果
+        lv_event_set_cover_res(e, LV_COVER_RES_COVER); //设置封面检查结果
 
     } else if (code == LV_EVENT_DRAW_MAIN_BEGIN) {      //执行主绘图
         /* add mask */
@@ -300,33 +299,33 @@ void roller_show_3(void)
     lv_style_init(&style);                              //初始化样式
     lv_style_set_bg_color(&style, lv_color_black());    //设置背景颜色
     lv_style_set_text_color(&style, lv_color_white());  //设置字体颜色
-    lv_style_set_border_width(&style, 0);               //设置边框宽度
-    lv_style_set_pad_all(&style, 0);                    //设置边距
-    lv_obj_add_style(lv_scr_act(), &style, 0);          //添加样式
+    lv_style_set_border_width(&style, 1);               //设置边框宽度
+    lv_style_set_border_color(&style, lv_color_white());
+    lv_style_set_pad_all(&style, 2);                    //设置边距
+    lv_style_set_text_font(&style, &lv_font_montserrat_12);
 
     lv_obj_t *roller1 = lv_roller_create(lv_scr_act()); //创建roller对象
     lv_obj_add_style(roller1, &style, 0);               //添加样式
     lv_obj_set_style_bg_opa(roller1, LV_OPA_TRANSP, LV_PART_SELECTED);  //设置对象的透明度
 
-    lv_obj_set_style_text_font(roller1, &lv_font_montserrat_12, LV_PART_SELECTED);  //设置对象字体
-
     lv_roller_set_options(roller1,                      //设置对象选项
-                        "January\n"
-                        "February\n"
-                        "March\n"
-                        "April\n"
-                        "May\n"
-                        "June\n"
-                        "July\n"
-                        "August\n"
-                        "September\n"
-                        "October\n"
-                        "November\n"
-                        "December",
-                        LV_ROLLER_MODE_NORMAL);
+                            "1\n"
+                            "2\n"
+                            "3\n"
+                            "4\n"
+                            "5\n"
+                            "6\n"
+                            "7\n"
+                            "8\n"
+                            "9\n"
+                            "10\n"
+                            "11\n"
+                            "12",
+                            LV_ROLLER_MODE_INFINITE);
 
-    lv_obj_center(roller1);                             //居中对象
-    lv_roller_set_visible_row_count(roller1, 3);        //设置对象间距
+    lv_obj_center(roller1);
+    lv_roller_set_visible_row_count(roller1, 8);        //设置对象间距
+    lv_obj_set_size(roller1,70,100);
     lv_obj_add_event_cb(roller1, mask_event_cb, LV_EVENT_ALL, NULL);   //设置回调
 }
 
