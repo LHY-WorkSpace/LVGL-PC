@@ -17,7 +17,7 @@ lv_obj_t *Btn_DOWN;
 lv_obj_t *Btn_UP;
 lv_obj_t *Btn;
 lv_obj_t *Btnnew;
-
+lv_obj_t *Bg;
 
 //***************************************************//
 //  功能描述: LVGL 按键处理
@@ -32,12 +32,13 @@ lv_obj_t *Btnnew;
 void OKKeyProcess(lv_event_t *Event)
 {
     lv_event_code_t Code = lv_event_get_code(Event);
+    lv_obj_t *Target = lv_event_get_target(Event);
 
     if( Code == LV_EVENT_CLICKED)
     {
         printf("OK !! \r\n");
-        // lv_obj_set_style_bg_color(Bg,lv_color_white(),LV_PART_MAIN);
-        lv_obj_clear_flag(Btn,LV_OBJ_FLAG_HIDDEN);
+        lv_obj_set_style_bg_color(Bg,lv_color_white(),LV_PART_MAIN);
+        lv_obj_set_style_bg_color(Target,lv_color_black(),LV_PART_SELECTED);
     }
 }
 
@@ -51,31 +52,30 @@ void DownKeyProcess(lv_event_t *Event)
     if( Code == LV_EVENT_CLICKED)
     {
         printf("Down !! \r\n");
-        // lv_obj_set_style_bg_color(Bg,lv_palette_main(LV_PALETTE_GREEN),LV_PART_MAIN);
+        lv_obj_set_style_bg_color(Bg,lv_palette_main(LV_PALETTE_GREEN),LV_PART_MAIN);
     }
 }
 
 void UpKeyProcess(lv_event_t *Event)
 {
     lv_event_code_t Code = lv_event_get_code(Event);
+    lv_obj_t *Target = lv_event_get_target(Event);
 
     if( Code == LV_EVENT_CLICKED)
     {
         printf("Up !! \r\n");
-        // lv_obj_set_style_bg_color(Bg,lv_palette_main(LV_PALETTE_BLUE),LV_PART_MAIN);
-        // lv_obj_add_flag(Roll,LV_OBJ_FLAG_SCROLL_ONE);
+        lv_obj_set_style_bg_color(Bg,lv_palette_main(LV_PALETTE_BLUE),LV_PART_MAIN);
     }
 }
 
 void BackKeyProcess(lv_event_t *Event)
 {
     lv_event_code_t Code = lv_event_get_code(Event);
-
+    lv_obj_t *Target = lv_event_get_target(Event);
     if( Code == LV_EVENT_CLICKED)
     {
         printf("Back !! \r\n");
-        // lv_obj_set_style_bg_color(Bg,lv_color_black(),LV_PART_MAIN);
-        lv_obj_add_flag(Btn,LV_OBJ_FLAG_HIDDEN);
+        lv_obj_set_style_bg_color(Bg,lv_color_black(),LV_PART_MAIN);
     }
 }
 
@@ -333,7 +333,7 @@ void roller_show_3(void)
 
     lv_obj_center(roller1);
     lv_roller_set_visible_row_count(roller1, 8);        //设置对象间距
-    lv_obj_set_size(roller1,70,100);
+    lv_obj_set_size(roller1,100,70);
     lv_obj_add_event_cb(roller1, mask_event_cb, LV_EVENT_ALL, NULL);   //设置回调
 }
 
@@ -370,7 +370,7 @@ void Arc_Btn()
     lv_arc_set_range(Arc,10,500);
     // lv_arc_set_rotation(Arc,90);
     lv_arc_set_value(Arc,255);
-    lv_obj_set_style_arc_color(Arc,lv_palette_main( LV_PALETTE_PINK),LV_PART_SCROLLBAR);
+    lv_obj_set_style_arc_color(Arc,lv_palette_main( LV_PALETTE_PINK),LV_PART_KNOB);
     lv_obj_set_style_arc_color(Arc,lv_palette_main( LV_PALETTE_GREEN),LV_PART_INDICATOR);
     lv_obj_set_style_arc_color(Arc,lv_palette_main( LV_PALETTE_YELLOW),LV_PART_MAIN);
     // lv_obj_set_style_arc_img_src(Arc,10,LV_PART_INDICATOR);
@@ -554,7 +554,9 @@ static lv_obj_t * meter;
 static void set_value(void * indic, int32_t v)
 {
     lv_meter_set_indicator_value(meter, indic, v);
+    printf("%d \r\n",v);
 }
+
 void lv_meter_1(void)
 {
     meter = lv_meter_create(lv_scr_act());
@@ -608,7 +610,7 @@ void lv_meter_1(void)
     lv_anim_set_exec_cb(&a, set_value);
     lv_anim_set_var(&a, indic);
     lv_anim_set_values(&a, 0, 100);
-    lv_anim_set_time(&a, 1000);
+    lv_anim_set_time(&a, 5000);
     lv_anim_set_repeat_delay(&a, 300);
     lv_anim_set_playback_time(&a, 1000);
     lv_anim_set_playback_delay(&a, 500);
@@ -616,6 +618,222 @@ void lv_meter_1(void)
     lv_anim_start(&a);
 }
 
+
+void CB(lv_event_t * e)
+{
+
+}
+
+
+
+void QQQQQ(void)
+{
+    static lv_style_t style_bg;
+    static lv_style_t style_indic;
+
+    lv_style_init(&style_bg);
+    lv_style_set_border_color(&style_bg, lv_palette_main(LV_PALETTE_BLUE));
+    lv_style_set_border_width(&style_bg, 2);
+    lv_style_set_pad_all(&style_bg, 6); /*To make the indicator smaller*/
+    lv_style_set_radius(&style_bg, 6);
+    lv_style_set_anim_time(&style_bg, 1000);
+
+    lv_style_init(&style_indic);
+    lv_style_set_bg_opa(&style_indic, LV_OPA_COVER);
+    lv_style_set_bg_color(&style_indic, lv_palette_main( LV_PALETTE_RED));
+    lv_style_set_radius(&style_indic, 3);
+
+    lv_obj_t * bar = lv_bar_create(lv_scr_act());
+    lv_obj_remove_style_all(bar);  /*To have a clean start*/
+    lv_obj_add_style(bar, &style_bg,  LV_PART_MAIN );
+    lv_obj_add_style(bar, &style_indic, LV_PART_INDICATOR);
+
+    lv_obj_set_size(bar, 200, 20);
+    lv_obj_center(bar);
+    lv_bar_set_value(bar, 100, LV_ANIM_ON);
+    lv_obj_add_event_cb(bar,CB,LV_EVENT_CLICKED,NULL);
+}
+
+
+
+void QR_UI()
+{
+
+    lv_obj_t *UI = lv_obj_create(lv_scr_act());
+    lv_obj_t *QR = lv_qrcode_create(UI,100,lv_color_black(),lv_color_white());
+    lv_qrcode_update(QR,"12346798",8);
+}
+
+
+
+
+
+
+
+static void scroll_event_cb(lv_event_t * e)
+{
+    //>>>>>>>>>>>-----------------<!>---Link
+    ///E1.----------------------------得到容器
+    lv_obj_t * cont = lv_event_get_target(e); //通过绑定了该事件的对象，来获取这个对象
+
+    ///E2.---------------------------通过一定算法，得到容器的y轴中心位置（目的：用于后面与子元素按钮进行y轴中心偏差比较）
+    lv_area_t cont_a; //区域 cont_area
+    lv_obj_get_coords(cont, &cont_a); //将cont的坐标赋值给cont_a (将cont_a约束为container的大小（200 * 200)  coords：坐标(x1,y1); (x2,y1); (x1,y2); (x2,y2)
+
+    lv_coord_t cont_y_center = cont_a.y1 + lv_area_get_height(&cont_a) / 2; //获取Container的y轴中心
+
+    lv_coord_t r = lv_obj_get_height(cont) * 7 / 10; // 200*7 / 10 = 140
+
+    uint32_t i;
+    uint32_t child_cnt = lv_obj_get_child_cnt(cont); //child_cnt : child count 儿子数量 获取container里面元素个数
+
+    ///E3.------------------遍历容器里面的子元素（按钮），以便操作这些元素的属性（用户垂直滚动时候，按钮发生水平偏移，并且设置不同的透明度）
+    for(i = 0; i < child_cnt; i++)  //遍历Buttons
+    {
+        lv_obj_t * child = lv_obj_get_child(cont, i); //获取container的第i个button
+        lv_area_t child_a; //创建一个属于儿子区域
+        lv_obj_get_coords(child, &child_a); //将child_a约束为button的大小（200 * 200）
+        lv_coord_t child_y_center = child_a.y1 + lv_area_get_height(&child_a) / 2; //计算得到button的y轴中心
+
+        lv_coord_t diff_y = child_y_center - cont_y_center; // button的y轴中心 - Container的y轴中心 = Button相对于Container的垂直偏差
+        diff_y = LV_ABS(diff_y); // 对偏差取绝对值（ABS）
+
+        ///E3.1------------------根据偏差（按钮相对于容器的y方向中心位置）来产生不同的x值
+        /*Get the x of diff_y on a circle.*/
+        lv_coord_t x;
+        /*If diff_y is out of the circle use the last point of the circle (the radius)*/
+        if(diff_y >= r) // diff_y >= 140
+        {
+            x = r; //x = 140
+        }
+        else     // diff_y < 140
+        {
+            /*Use Pythagoras theorem to get x from radius and y*/
+            uint32_t x_sqr = r * r - diff_y * diff_y; // 140 * 140  - diff_y的平方
+            lv_sqrt_res_t res;
+            lv_sqrt(x_sqr, &res, 0x8000);   /*Use lvgl's built in sqrt root function*/
+            x = r - res.i;
+        }
+        ///E3.2--------------------根据x值，将button移动x个单位距离，根据r映射出不同的透明度值，设置按钮不同透明度
+        /*Translate the item by the calculated X coordinate*/
+        lv_obj_set_style_translate_x(child, x, 0); //将button 移动 x个单位距离
+
+        /*Use some opacity with larger translations*/
+        lv_opa_t opa = lv_map(x, 0, r, LV_OPA_TRANSP, LV_OPA_COVER);  //通过r的不同值，动态映射创建不透明度值 opa: opacity
+        lv_obj_set_style_opa(child, LV_OPA_COVER - opa, 0); //给按钮应用不透明度值  opa: opacity
+    }
+}
+
+
+void lv_example_soll_6(void)
+{
+
+    Bg = lv_obj_create(lv_scr_act());
+    lv_obj_set_size(Bg,240,240);
+    lv_obj_set_style_bg_color(Bg,lv_color_black(),LV_PART_MAIN);
+    lv_obj_set_style_radius(Bg,0,LV_PART_MAIN);
+
+    ///祖父对象
+    //lv_obj_t *screenA = lv_scr_act();
+    ///父对象
+    lv_obj_t * cont = lv_obj_create(lv_scr_act()); //在屏幕上创建一个container
+    lv_obj_set_size(cont, 200, 200); //设置cont的尺寸： w200, h200  （正方形）
+    lv_obj_set_style_bg_color(cont,lv_color_black(),LV_PART_MAIN);
+    lv_obj_set_style_border_width(cont,3,LV_PART_MAIN);
+    lv_obj_set_style_border_color(cont,lv_color_white(),LV_PART_MAIN);
+    lv_obj_center(cont);//让cont垂直水平居中（相对于父级）
+    lv_obj_set_flex_flow(cont, LV_FLEX_FLOW_COLUMN );//设置cont的子级的layout: 弹性布局弹性流（flex-flow）(布局+滚动功能)
+    ///对象的特性
+    //1.添加事件 // Link---<!>----------------------------------->>>>>>>>>>>>
+    lv_obj_add_event_cb(cont, scroll_event_cb, LV_EVENT_SCROLL, NULL);//给cont添加event，事件的回调函数、事件类型（Scroll）
+    //2.设置样式
+    lv_obj_set_style_radius(cont, LV_RADIUS_CIRCLE, 0); //设置矩形圆角 LV_RADIUS_CIRCLE：圆角最大化
+    lv_obj_set_style_clip_corner(cont, true, 0); //儿子超出部分隐藏
+    lv_obj_set_scroll_dir(cont, LV_DIR_VER); //设置Scroll的允许方向direction：垂直方向
+    lv_obj_set_scroll_snap_y(cont, LV_SCROLL_SNAP_CENTER); //捕捉Cont Y方向的子对象，将他们与Container中心对齐 ； snap ：捕获；捕捉
+    lv_obj_set_scrollbar_mode(cont, LV_SCROLLBAR_MODE_ACTIVE);//隐藏scrollbar
+
+    ///子对象
+    uint32_t i;
+    ///在container上创建若干个button
+
+    lv_group_t *Group = lv_group_create();
+
+    for(i = 0; i < 20; i++)
+    {
+        lv_obj_t * btn = lv_btn_create(cont); //在container上创建button
+        lv_obj_set_width(btn, lv_pct(50)); //设置button的width = lv_pct(100); //pct : percentage 相对于父亲的宽度100%
+
+        ///孙对象
+        lv_obj_t * label = lv_label_create(btn); //在button上创建一个label（标签）
+        lv_label_set_text_fmt(label, "Button %d", i);  //动态设置label的文本内容  fmt: format（格式）
+        lv_group_add_obj(Group,btn);
+    }
+
+    lv_indev_set_group(lv_win32_encoder_device_object,Group);
+    /*Update the buttons position manually for first*/ //首次手动更新按钮的位置
+    lv_event_send(cont, LV_EVENT_SCROLL, NULL); //TODO
+
+    /*Be sure the fist button is in the middle*/ //确保第一个按钮处于中间
+    lv_obj_scroll_to_view(lv_obj_get_child(cont, 0), LV_ANIM_ON); //第一个按钮是否以滚动动画，滚动到指定位置（默认位置）
+}
+
+
+
+
+
+
+
+// static void anim_x_cb(void * var, int32_t v)
+// {
+//     lv_obj_set_x(var, v);
+// }
+
+// static void sw_event_cb(lv_event_t * e)
+// {
+//     lv_obj_t * sw = lv_event_get_target(e);
+//     lv_obj_t * label = lv_event_get_user_data(e);
+
+//     if(lv_obj_has_state(sw, LV_STATE_CHECKED))
+//     {
+//         lv_anim_t a;
+//         lv_anim_init(&a);
+//         lv_anim_set_var(&a, label);
+//         lv_anim_set_values(&a, lv_obj_get_x(label), 100);
+//         lv_anim_set_time(&a, 500);
+//         lv_anim_set_exec_cb(&a, anim_x_cb);
+//         lv_anim_set_path_cb(&a, lv_anim_path_overshoot);
+//         lv_anim_start(&a);
+//     }
+//     else
+//     {
+//         lv_anim_t a;
+//         lv_anim_init(&a);
+//         lv_anim_set_var(&a, label);
+//         lv_anim_set_values(&a, lv_obj_get_x(label), -lv_obj_get_width(label));
+//         lv_anim_set_time(&a, 500);
+//         lv_anim_set_exec_cb(&a, anim_x_cb);
+//         lv_anim_set_path_cb(&a, lv_anim_path_ease_in);
+//         lv_anim_start(&a);
+//     }
+
+// }
+
+// /**
+//  * Start animation on an event
+//  */
+// void lv_example_anim_1(void)
+// {
+//     lv_obj_t * label = lv_label_create(lv_scr_act());
+//     lv_label_set_text(label, "Hello animations!");
+//     lv_obj_set_pos(label, 100, 10);
+
+
+//     lv_obj_t * sw = lv_switch_create(lv_scr_act());
+//     lv_obj_center(sw);
+//     lv_obj_add_state(sw, LV_STATE_CHECKED);
+//     lv_obj_add_event_cb(sw, sw_event_cb, LV_EVENT_VALUE_CHANGED, label);
+// }
 
 
 
@@ -630,24 +848,35 @@ void lv_meter_1(void)
 //  说明: 无
 //
 //***************************************************//
+EXTERN_C lv_indev_t* lv_win32_encoder_device_object;
 static void LVGL_Build_GUI()
 {
     BackGroung();
-    // KeyBtn_OK();
-    // KeyBtn_BACK();
-    // KeyBtn_UP();
-    // KeyBtn_DOWN();
+    KeyBtn_OK();
+    KeyBtn_BACK();
+    KeyBtn_UP();
+    KeyBtn_DOWN();
     // Arc_Btn();
     // BarTest();
-    //Botton();
+    Botton();
     //CheckBox();
     // LineTest();
     //SliderTest();
     // SwitchTest();
     // MeterTest();
-    lv_meter_1();
+    // lv_meter_1();
     //AniTest();
     // roller_show_3();
+    // QQQQQ();
+    // QR_UI();
+
+    lv_group_t *Group = lv_group_create();
+    lv_group_add_obj(Group,Btn_OK);
+    lv_group_add_obj(Group,Btn_BACK);
+    lv_group_add_obj(Group,Btn_DOWN);
+    lv_group_add_obj(Group,Btn_UP);
+    lv_group_add_obj(Group,Btn);
+    lv_indev_set_group(lv_win32_encoder_device_object,Group);
 
 }
 
@@ -679,6 +908,131 @@ void GroupTest()
     lv_group_add_obj(Group,Btnnew);
    // lv_obj_add_event_cb(Btnnew, DownKeyProcess ,LV_EVENT_CLICKED,NULL);
 }
+
+lv_obj_t *ALL_Bg;
+void BarAnimation_CB(void * var, int32_t v)
+{
+    // lv_obj_set_style_border_color(var,lv_palette_main( LV_PALETTE_GREEN),LV_PART_MAIN);
+    // lv_obj_set_style_border_opa(var,LV_OPA_50,LV_PART_MAIN);
+    // lv_obj_set_style_border_width(var,v,LV_PART_MAIN);
+    lv_obj_set_style_arc_width(var,v,LV_PART_MAIN);
+    lv_obj_set_style_bg_grad_color(var, lv_palette_main(LV_PALETTE_GREEN), 0);
+    lv_obj_set_style_bg_grad_dir(var, LV_GRAD_DIR_HOR, 0);
+
+}
+
+void StateBar_CB(lv_event_t *e)
+{
+    int16_t Arc_Val=0;
+    static  lv_anim_t Anima;
+
+    lv_obj_t *Target = lv_event_get_target(e);
+    lv_obj_t *UserData = lv_event_get_user_data(e);
+//    static lv_obj_t *Btn;
+//    static lv_obj_t *Btn_Start;
+
+    Arc_Val = lv_arc_get_value(Target);
+//     Btn = lv_btn_create(Target);
+//     Btn_Start = lv_label_create(Btn);
+
+    printf("%d\r\n",Arc_Val);
+
+
+    if( Arc_Val == 100)
+    {
+
+        // lv_obj_set_size(Btn,15,15);
+        // lv_label_set_text(Btn_Start,"V");
+        // lv_obj_align(Btn_Start,LV_ALIGN_CENTER,0,0);
+        // lv_obj_align_to(Btn,Target,LV_ALIGN_BOTTOM_RIGHT,-5,0);
+        // lv_obj_clear_flag(UserData,LV_OBJ_FLAG_HIDDEN);
+        // lv_obj_clear_flag(Btn,LV_OBJ_FLAG_HIDDEN);
+
+        lv_obj_set_style_arc_color(Target,lv_palette_main( LV_PALETTE_YELLOW),LV_PART_INDICATOR);
+
+    }
+
+
+    if(Arc_Val == 0)
+    {
+        lv_obj_set_style_arc_color(Target,lv_palette_main( LV_PALETTE_BLUE),LV_PART_INDICATOR);
+    }
+
+    lv_arc_set_bg_angles(UserData,lv_arc_get_angle_start(Target),lv_arc_get_angle_end(Target));
+    lv_anim_init(&Anima);
+    lv_anim_set_var(&Anima,UserData);
+    lv_anim_set_values(&Anima,0,10);
+    lv_anim_set_time(&Anima, 1000);
+    lv_anim_set_exec_cb(&Anima, BarAnimation_CB);
+    lv_anim_set_repeat_delay(&Anima, 100);
+    lv_anim_set_playback_time(&Anima, 1000);
+    lv_anim_set_playback_delay(&Anima, 500);
+    lv_anim_set_repeat_count(&Anima, 1);
+    lv_anim_start(&Anima);
+
+}
+
+void StateBar()
+{
+
+    //创建背景
+    ALL_Bg = lv_obj_create(lv_scr_act());
+    lv_obj_set_size(ALL_Bg,240,240);
+    lv_obj_set_style_bg_color(ALL_Bg,lv_color_black(),LV_PART_MAIN);
+
+
+    lv_obj_t *Arc_Out =lv_arc_create(ALL_Bg); 
+
+    lv_obj_set_size(Arc_Out,95,95);
+    lv_obj_set_style_arc_color(Arc_Out,lv_palette_main(LV_PALETTE_GREY),LV_PART_MAIN);
+    lv_obj_set_style_arc_opa(Arc_Out,LV_OPA_50,LV_PART_MAIN);
+    lv_obj_remove_style(Arc_Out, NULL, LV_PART_KNOB);//删除把手
+    lv_obj_remove_style(Arc_Out, NULL, LV_PART_INDICATOR);//删除进度条
+    lv_obj_set_style_arc_rounded(Arc_Out,0,LV_PART_MAIN);
+    lv_obj_set_style_arc_width(Arc_Out,10,LV_PART_MAIN);
+    lv_obj_align_to(Arc_Out,ALL_Bg,LV_ALIGN_BOTTOM_LEFT,0,0);
+    lv_arc_set_value(Arc_Out,0);
+    // lv_obj_add_flag(Arc_Out,LV_OBJ_FLAG_HIDDEN);
+
+    lv_obj_t *Arc_In =lv_arc_create(ALL_Bg); 
+    lv_obj_set_size(Arc_In,75,75);
+    lv_obj_set_style_arc_color(Arc_In,lv_palette_main(LV_PALETTE_GREY),LV_PART_MAIN);
+    lv_obj_set_style_arc_opa(Arc_In,LV_OPA_50,LV_PART_MAIN);
+    lv_obj_set_style_arc_width(Arc_In,5,LV_PART_MAIN);
+    lv_obj_set_style_arc_width(Arc_In,5,LV_PART_INDICATOR);
+    lv_obj_set_style_arc_rounded(Arc_In,0,LV_PART_MAIN);
+    lv_obj_set_style_arc_rounded(Arc_In,0,LV_PART_INDICATOR);
+    lv_obj_align_to(Arc_In,Arc_Out,LV_ALIGN_CENTER,0,0);
+    lv_arc_set_value(Arc_In,50);
+    lv_obj_remove_style(Arc_In, NULL, LV_PART_KNOB);
+    lv_obj_add_event_cb(Arc_In,StateBar_CB,LV_EVENT_VALUE_CHANGED,Arc_Out);
+
+    lv_arc_set_bg_angles(Arc_Out,lv_arc_get_angle_start(Arc_In),lv_arc_get_angle_end(Arc_In));
+
+    lv_obj_t *Center = lv_obj_create(Arc_In); 
+    lv_obj_set_size(Center,55,55);
+    lv_obj_set_style_radius(Center,LV_RADIUS_CIRCLE,0);
+    lv_obj_set_style_opa(Center,LV_OPA_50,LV_PART_MAIN);
+    lv_obj_set_style_bg_color(Center,lv_palette_main(LV_PALETTE_GREY),LV_PART_MAIN);
+    lv_obj_align_to(Center,Arc_In,LV_ALIGN_CENTER,0,0);
+
+    
+    lv_obj_t *text = lv_label_create(Center);
+    lv_obj_set_style_text_color(text,lv_color_white(),LV_PART_MAIN);
+    lv_obj_set_style_text_opa(text,LV_OPA_COVER,LV_PART_MAIN);
+    lv_label_set_text_fmt(text,"%d\%",10);
+    lv_obj_align_to(text,Center,LV_ALIGN_CENTER,0,10);
+
+
+
+
+    lv_group_t *Group = lv_group_create();
+    lv_group_add_obj(Group,Arc_In);
+    // lv_group_add_obj(Group,Center);
+    lv_indev_set_group(lv_win32_encoder_device_object,Group);
+
+}
+
 
 
 
@@ -718,7 +1072,9 @@ void LVGL_Init()
 	lv_port_indev_init();
 #endif
 
-    LVGL_Build_GUI();
+    StateBar();
+    // LVGL_Build_GUI();
+    // lv_example_soll_6();
     // LVGL_Demo();
 
     // BackGroung();
