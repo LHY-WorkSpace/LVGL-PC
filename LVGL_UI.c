@@ -15,87 +15,124 @@ lv_obj_t *Arc_Out;
 lv_obj_t *ALL_Bg;
 lv_obj_t *Arc_In;
 lv_obj_t *Center;
+lv_group_t *Group;
+lv_anim_t Anima;
+lv_obj_t *Btn;
+lv_obj_t *Btn_Start;
+lv_obj_t *text;
+BarState_e BarState = Charing;
+
 
 void BarAnimation_CB(void * var, int32_t v)
 {
-    // lv_obj_set_style_border_color(var,lv_palette_main( LV_PALETTE_GREEN),LV_PART_MAIN);
-    // lv_obj_set_style_border_opa(var,LV_OPA_50,LV_PART_MAIN);
-    // lv_obj_set_style_border_width(var,v,LV_PART_MAIN);
+    printf(" BarAnim Val: %d \r\n",v);
 
-    lv_obj_t *ArcOut = (lv_obj_t *)var;
-   lv_obj_set_style_arc_width(ArcOut,10-v,LV_PART_MAIN);
-    //printf("size %d  width %d \r\n",lv_obj_get_x(ArcOut),v);
+    if( BarState != InRelease)
+    {
+        lv_obj_set_style_arc_width(Arc_Out,10-v,LV_PART_MAIN);
+    }
+    else
+    {
+        lv_arc_set_value(Arc_In,100 - v);
+
+        if(v == 100)
+        {
+            lv_obj_add_flag(Btn,LV_OBJ_FLAG_HIDDEN);
+        }
+    }
+    lv_label_set_text_fmt(text,"%d%s",lv_arc_get_value(Arc_In),"%");
 }
 
 
 
 void Btn_CB(lv_event_t *e)
 {
-    lv_obj_t *Target = lv_event_get_target(e);
-    lv_obj_t *UserData = lv_event_get_user_data(e);
     printf(" Btn_CB \r\n");
     if( lv_event_get_code(e) == LV_EVENT_PRESSED)
     {
-        lv_obj_add_flag(UserData,LV_OBJ_FLAG_HIDDEN);
+        if( BarState == Full)
+        {
+            lv_anim_set_values(&Anima,0,100);
+            lv_anim_set_time(&Anima, 2000);
+            lv_anim_set_exec_cb(&Anima, BarAnimation_CB);
+            lv_anim_set_repeat_count(&Anima, 1);
+            lv_anim_start(&Anima);
+            lv_obj_add_flag(Arc_Out,LV_OBJ_FLAG_HIDDEN);
+
+            lv_group_add_obj(Group,Arc_In);
+            lv_group_focus_obj(Arc_In);
+            lv_group_remove_obj(Btn);
+
+            BarState = InRelease;
+        }
+
     }
 }
 
 
 void Arc_Out_CB(lv_event_t *e)
 {
-    lv_obj_t *Target = lv_event_get_target(e);
-    lv_obj_t *UserData = lv_event_get_user_data(e);
-
     printf(" Arc_Out_CB \r\n");
-    // printf("Angle : %d \r\n ",lv_arc_get_bg_angle_end(Target));
-    if(lv_arc_get_bg_angle_end(Target) == 45)
+
+    if(lv_arc_get_value(Arc_In) == 100)
     {
-        lv_obj_clear_flag(UserData,LV_OBJ_FLAG_HIDDEN);
+        lv_obj_clear_flag(Btn,LV_OBJ_FLAG_HIDDEN);
     }
 
 }
 
-
-
-
-
 void Arc_In_CB(lv_event_t *e)
 {
     int16_t Arc_Val=0;
-    static  lv_anim_t Anima;
 
-    lv_obj_t *Target = lv_event_get_target(e);
-    lv_obj_t *UserData = lv_event_get_user_data(e);
-    // printf("size %d  \r\n",lv_obj_get_width(UserData));
+    Arc_Val = lv_arc_get_value(Arc_In);
 
-    Arc_Val = lv_arc_get_value(Target);
-
-    lv_anim_init(&Anima);
-
-    printf("%d\r\n",Arc_Val);
+    printf("Angle %d  State  %d\r\n",Arc_Val,BarState);
 
     if( Arc_Val == 100)
     {
-        lv_obj_set_style_arc_color(Target,lv_palette_main( LV_PALETTE_YELLOW),LV_PART_INDICATOR);
-    }
-    else
-    {
-
-    }
-    
-    if(Arc_Val == 0)
-    {
-        lv_obj_set_style_arc_color(Target,lv_palette_main( LV_PALETTE_BLUE),LV_PART_INDICATOR);
-        lv_obj_clear_flag(UserData,LV_OBJ_FLAG_HIDDEN);
+        lv_obj_set_style_arc_color(Arc_In,lv_palette_main( LV_PALETTE_YELLOW),LV_PART_INDICATOR);
+        lv_group_add_obj(Group,Btn);
+        lv_group_focus_obj(Btn);
+        lv_group_remove_obj(Arc_In);
+        BarState = Full;
     }
 
-    lv_arc_set_bg_angles(UserData,lv_arc_get_angle_start(Target),lv_arc_get_angle_end(Target));
-    lv_anim_set_var(&Anima,UserData);
-    lv_anim_set_values(&Anima,0,10);
-    lv_anim_set_time(&Anima, 500);
-    lv_anim_set_exec_cb(&Anima, BarAnimation_CB);
-    lv_anim_set_repeat_count(&Anima, 1);
-    lv_anim_start(&Anima);
+    if(Arc_Val == 1)
+    {
+        lv_obj_set_style_arc_color(Arc_In,lv_palette_main( LV_PALETTE_BLUE),LV_PART_INDICATOR);
+        lv_obj_clear_flag(Arc_Out,LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(Btn,LV_OBJ_FLAG_HIDDEN);
+        BarState = Charing;
+    }
+
+    lv_arc_set_bg_angles(Arc_Out,lv_arc_get_angle_start(Arc_In),lv_arc_get_angle_end(Arc_In));
+
+    switch (BarState)
+    {
+        case Charing:
+                lv_anim_set_var(&Anima,Arc_Out);
+                lv_anim_set_values(&Anima,0,10);
+                lv_anim_set_time(&Anima, 500);
+                lv_anim_set_exec_cb(&Anima, BarAnimation_CB);
+                lv_anim_set_repeat_count(&Anima, 1);
+                lv_anim_start(&Anima);
+            break;
+        case Full:
+                lv_anim_set_values(&Anima,0,10);
+                lv_anim_set_time(&Anima, 500);
+                lv_anim_set_repeat_delay(&Anima, 500);
+                lv_anim_set_repeat_count(&Anima, LV_ANIM_PLAYTIME_INFINITE);
+                lv_anim_set_exec_cb(&Anima, BarAnimation_CB);
+                lv_anim_start(&Anima);
+            break;
+        case InRelease:
+
+            break;
+        default:
+            break;
+    }
+
 }
 
 void StateBar()
@@ -116,7 +153,7 @@ void StateBar()
     lv_obj_set_style_arc_rounded(Arc_Out,0,LV_PART_MAIN);
     lv_obj_set_style_arc_width(Arc_Out,10,LV_PART_MAIN);
     lv_arc_set_value(Arc_Out,0);
-    lv_obj_align(Arc_Out,LV_ALIGN_BOTTOM_LEFT,0,0);
+    lv_obj_align(Arc_Out,LV_ALIGN_BOTTOM_LEFT,-5,10);
 
 
     Arc_In =lv_arc_create(ALL_Bg); 
@@ -130,7 +167,7 @@ void StateBar()
     lv_obj_set_style_arc_rounded(Arc_In,0,LV_PART_INDICATOR);
     lv_arc_set_value(Arc_In,0);
     lv_obj_remove_style(Arc_In, NULL, LV_PART_KNOB);
-    lv_obj_add_event_cb(Arc_In,Arc_In_CB,LV_EVENT_VALUE_CHANGED,Arc_Out);
+    lv_obj_add_event_cb(Arc_In,Arc_In_CB,LV_EVENT_VALUE_CHANGED,NULL);
     lv_arc_set_bg_angles(Arc_Out,lv_arc_get_angle_start(Arc_In),lv_arc_get_angle_end(Arc_In));
 
 
@@ -143,31 +180,32 @@ void StateBar()
 
 
     
-    lv_obj_t *text = lv_label_create(Center);
+    text = lv_label_create(ALL_Bg);
     lv_obj_set_style_text_color(text,lv_color_white(),LV_PART_MAIN);
     lv_obj_set_style_text_opa(text,LV_OPA_COVER,LV_PART_MAIN);
-    lv_label_set_text_fmt(text,"%d\%",10);
-    lv_obj_align_to(text,Center,LV_ALIGN_CENTER,0,10);
+    lv_label_set_text_fmt(text,"%d%s",lv_arc_get_value(Arc_In),"%");
+    lv_obj_align_to(text,Center,LV_ALIGN_CENTER,0,15);
 
 
 
-    lv_obj_t *Btn = lv_btn_create(Arc_In);
-    lv_obj_t *Btn_Start = lv_label_create(Btn);
+    Btn = lv_btn_create(Arc_In);
+    Btn_Start = lv_label_create(Btn);
 
     lv_obj_set_size(Btn,15,15);
     lv_label_set_text(Btn_Start,"V");
     lv_obj_align(Btn,LV_ALIGN_BOTTOM_RIGHT,-10,0);
     lv_obj_align(Btn_Start,LV_ALIGN_CENTER,0,0);
-    lv_obj_add_event_cb(Btn,Btn_CB,LV_EVENT_PRESSED,Arc_Out);
+    lv_obj_add_event_cb(Btn,Btn_CB,LV_EVENT_PRESSED,NULL);
     lv_obj_add_flag(Btn,LV_OBJ_FLAG_HIDDEN);
-    lv_obj_add_event_cb(Arc_Out,Arc_Out_CB,LV_EVENT_DRAW_MAIN_END,Btn);
+    lv_obj_add_event_cb(Arc_Out,Arc_Out_CB,LV_EVENT_DRAW_MAIN_END,NULL);
 
 
+    lv_anim_init(&Anima);
 
-
-    lv_group_t *Group = lv_group_create();
+    Group = lv_group_create();
     lv_group_add_obj(Group,Arc_In);
     lv_group_add_obj(Group,Btn);
+    lv_group_focus_obj(Arc_In);
     lv_indev_set_group(lv_win32_encoder_device_object,Group);
 
 }
