@@ -182,11 +182,11 @@ void StateBar()
 
     Center = lv_obj_create(ALL_Bg); 
     lv_obj_set_size(Center,UI_SIZE-45,UI_SIZE-45);
-    lv_obj_align_to(Center,Arc_In,LV_ALIGN_CENTER,0,0);
     lv_obj_set_style_radius(Center,LV_RADIUS_CIRCLE,0);
-    lv_obj_set_style_opa(Center,LV_OPA_50,LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(Center,LV_OPA_50,LV_PART_MAIN);
     lv_obj_set_style_bg_color(Center,lv_palette_main(LV_PALETTE_GREY),LV_PART_MAIN);
-
+    lv_obj_set_style_border_width(Center,0,LV_PART_MAIN);
+    lv_obj_align_to(Center,Arc_In,LV_ALIGN_CENTER,0,0);
 
     
     text = lv_label_create(ALL_Bg);
