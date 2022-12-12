@@ -294,17 +294,17 @@ EXTERN_C bool lv_win32_init(
     g_display->refr_timer = NULL;
     lv_timer_create(lv_win32_display_refresh_handler, 0, NULL);
 
-    // static lv_indev_drv_t pointer_driver;
-    // lv_indev_drv_init(&pointer_driver);
-    // pointer_driver.type = LV_INDEV_TYPE_POINTER;
-    // pointer_driver.read_cb = lv_win32_pointer_driver_read_callback;
-    // lv_win32_pointer_device_object = lv_indev_drv_register(&pointer_driver);
+    static lv_indev_drv_t pointer_driver;
+    lv_indev_drv_init(&pointer_driver);
+    pointer_driver.type = LV_INDEV_TYPE_POINTER;
+    pointer_driver.read_cb = lv_win32_pointer_driver_read_callback;
+    lv_win32_pointer_device_object = lv_indev_drv_register(&pointer_driver);
 
-    // static lv_indev_drv_t keypad_driver;
-    // lv_indev_drv_init(&keypad_driver);
-    // keypad_driver.type = LV_INDEV_TYPE_KEYPAD;
-    // keypad_driver.read_cb = lv_win32_keypad_driver_read_callback;
-    // lv_win32_keypad_device_object = lv_indev_drv_register(&keypad_driver);
+    static lv_indev_drv_t keypad_driver;
+    lv_indev_drv_init(&keypad_driver);
+    keypad_driver.type = LV_INDEV_TYPE_KEYPAD;
+    keypad_driver.read_cb = lv_win32_keypad_driver_read_callback;
+    lv_win32_keypad_device_object = lv_indev_drv_register(&keypad_driver);
 
     static lv_indev_drv_t encoder_driver;
     lv_indev_drv_init(&encoder_driver);
