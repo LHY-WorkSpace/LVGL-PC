@@ -16,8 +16,19 @@
 
 #define EYE_SIZE    (70)
 
+#define EYE_SIZE_W    (lv_obj_get_width(lv_scr_act())/4)
+#define EYE_SIZE_H    (lv_obj_get_height(lv_scr_act())/4)
 
 
+
+
+int8_t  pos[4][2]=
+{
+    {0,-70},
+    {70,0},
+    {0,70},
+    {-70,0}
+};
 
 
 
@@ -29,11 +40,22 @@ lv_obj_t *EYE_2;
 lv_obj_t *EYE_3;
 lv_obj_t *EYE_4;
 lv_obj_t *EYE_CENTER;
+lv_anim_t Anima;
 
-lv_anim_timeline_t* anim_timeline;
+void Animation_CB(void *var, int32_t v)
+{
+    lv_obj_align_to(EYE_1,Main,LV_ALIGN_CENTER,0-v,v-70);
+    lv_obj_align_to(EYE_2,Main,LV_ALIGN_CENTER,70-v,0-v);
+    lv_obj_align_to(EYE_3,Main,LV_ALIGN_CENTER,0+v,70-v);
+    lv_obj_align_to(EYE_4,Main,LV_ALIGN_CENTER,-70+v,0+v);
+
+}
+
 
 void StateBar()
 {
+
+
 
     //创建背景
     ALL_Bg = lv_obj_create(lv_scr_act());
@@ -56,35 +78,26 @@ void StateBar()
     lv_obj_center(Main);
 
 
-    // lv_obj_set_flex_flow(Main,LV_FLEX_FLOW_ROW );
-    // lv_obj_set_scroll_dir(Main, LV_DIR_VER);
-    // lv_obj_set_scroll_snap_y(Main, LV_SCROLL_SNAP_CENTER);
-    // lv_obj_set_scrollbar_mode(Main, LV_SCROLLBAR_MODE_OFF);
-
-
-
-
-
-
     EYE_1 = lv_obj_create(Main);
-    lv_obj_set_size(EYE_1,EYE_SIZE,EYE_SIZE);
+    lv_obj_set_size(EYE_1,EYE_SIZE_W,EYE_SIZE_W);
     lv_obj_set_style_bg_color(EYE_1,lv_color_white(),LV_PART_MAIN);
-    lv_obj_set_style_radius(EYE_1,EYE_SIZE/2,LV_PART_MAIN);
+    lv_obj_set_style_radius(EYE_1,EYE_SIZE_W/2,LV_PART_MAIN);
+    
 
     EYE_2 = lv_obj_create(Main);
-    lv_obj_set_size(EYE_2,EYE_SIZE,EYE_SIZE);
+    lv_obj_set_size(EYE_2,EYE_SIZE_W,EYE_SIZE_W);
     lv_obj_set_style_bg_color(EYE_2,lv_color_white(),LV_PART_MAIN);
-    lv_obj_set_style_radius(EYE_2,EYE_SIZE/2,LV_PART_MAIN);
+    lv_obj_set_style_radius(EYE_2,EYE_SIZE_W/2,LV_PART_MAIN);
 
     EYE_3 = lv_obj_create(Main);
-    lv_obj_set_size(EYE_3,EYE_SIZE,EYE_SIZE);
+    lv_obj_set_size(EYE_3,EYE_SIZE_W,EYE_SIZE_W);
     lv_obj_set_style_bg_color(EYE_3,lv_color_white(),LV_PART_MAIN);
-    lv_obj_set_style_radius(EYE_3,EYE_SIZE/2,LV_PART_MAIN);
+    lv_obj_set_style_radius(EYE_3,EYE_SIZE_W/2,LV_PART_MAIN);
 
     EYE_4 = lv_obj_create(Main);
-    lv_obj_set_size(EYE_4,EYE_SIZE,EYE_SIZE);
+    lv_obj_set_size(EYE_4,EYE_SIZE_W,EYE_SIZE_W);
     lv_obj_set_style_bg_color(EYE_4,lv_color_white(),LV_PART_MAIN);
-    lv_obj_set_style_radius(EYE_4,EYE_SIZE/2,LV_PART_MAIN);
+    lv_obj_set_style_radius(EYE_4,EYE_SIZE_W/2,LV_PART_MAIN);
 
 
     // lv_obj_set_flex_align(EYE_2,LV_FLEX_ALIGN_SPACE_AROUND,LV_FLEX_ALIGN_SPACE_AROUND,LV_FLEX_ALIGN_CENTER);
@@ -96,17 +109,25 @@ void StateBar()
     lv_obj_align_to(EYE_3,Main,LV_ALIGN_CENTER,0,70);
     lv_obj_align_to(EYE_4,Main,LV_ALIGN_CENTER,-70,0);
 
-    anim_timeline = lv_anim_timeline_create();
-    // lv_anim_timeline_add(anim_timeline, 0, &anim_axis);
-    // lv_anim_timeline_add(anim_timeline, 100, &anim_obj_01);
-    // lv_anim_timeline_add(anim_timeline, 1100, &anim_obj_02);
-    // lv_anim_timeline_add(anim_timeline, 2100, &anim_obj_03);
-    // lv_anim_timeline_add(anim_timeline, 300, &anim_label_01);
-    // lv_anim_timeline_add(anim_timeline, 1300, &anim_label_02);
-    // lv_anim_timeline_add(anim_timeline, 2300, &anim_label_03);
 
+    lv_anim_init(&Anima);
 
-    // lv_anim_timeline_start(anim_timeline);
+    lv_anim_set_var(&Anima,EYE_1);
+    lv_anim_set_values(&Anima,0,70);
+    lv_anim_set_time(&Anima, 800);
+    lv_anim_set_exec_cb(&Anima, Animation_CB);
+
+    lv_anim_set_path_cb(&Anima,lv_anim_path_ease_in_out);
+    // lv_anim_set_path_cb(&Anima,lv_anim_path_ease_in);
+    // lv_anim_set_path_cb(&Anima,lv_anim_path_ease_out);//==
+    // lv_anim_set_path_cb(&Anima,lv_anim_path_bounce);//==
+    // lv_anim_set_path_cb(&Anima,lv_anim_path_overshoot);
+    // lv_anim_set_path_cb(&Anima,lv_anim_path_step);
+
+    lv_anim_set_repeat_count(&Anima, LV_ANIM_PLAYTIME_INFINITE);
+
+    lv_anim_start(&Anima);
+
 }
 
 #endif
@@ -145,11 +166,11 @@ static void sw_event_cb(lv_event_t* e)
     lv_obj_t* sw = lv_event_get_target(e);   //获取目标事件对象
     if (code == LV_EVENT_VALUE_CHANGED) {   //值改变事件
         lv_obj_t* list = lv_event_get_user_data(e);  //获取事件用户数据
-        if (lv_obj_has_state(sw, LV_STATE_CHECKED)) 
+        if (lv_obj_has_state(sw, LV_STATE_CHECKED))
         	lv_obj_add_flag(list, LV_OBJ_FLAG_SCROLL_ONE); // 开启滚动一屏功能
-        else 
+        else
         	lv_obj_clear_flag(list, LV_OBJ_FLAG_SCROLL_ONE);// 关闭滚动一屏功能
-        
+
     }
 
 }
@@ -162,12 +183,12 @@ static void lv_example_scroll_2(void)
     lv_obj_set_flex_flow(panel, LV_FLEX_FLOW_ROW); // 设置LV_FLEX_FLOW_ROW方式
     lv_obj_align(panel, LV_ALIGN_CENTER, 0, 20); //x居中，y居中向下20像素对齐
     uint32_t i;
-    for (i = 0; i < 10; i++) 
+    for (i = 0; i < 10; i++)
     {
         lv_obj_t* btn = lv_btn_create(panel);  // 创建button对象
         lv_obj_set_size(btn, 150,lv_pct(100)); //设置大小
         lv_obj_t* label = lv_label_create(btn); //创建label
-        if (i == 3) {  
+        if (i == 3) {
             lv_label_set_text_fmt(label, "Panel %d\nno snap", i); //设置文字内容
             lv_obj_clear_flag(btn, LV_OBJ_FLAG_SNAPPABLE); //清除snap特性
         }
@@ -196,8 +217,8 @@ static void scroll_end_event(lv_event_t * e)
     lv_obj_t * cont = lv_event_get_target(e);                                               // 获取事件的初始对象
 
     /* 获取事件的事件代码 */
-    if(lv_event_get_code(e) == LV_EVENT_SCROLL_END) 
-    {  
+    if(lv_event_get_code(e) == LV_EVENT_SCROLL_END)
+    {
         /* 判断是否在滚动中 */
         if (lv_obj_is_scrolling(cont))
         {
@@ -210,7 +231,7 @@ static void scroll_end_event(lv_event_t * e)
         /* 获取父对象y轴的中心坐标值 */
         lv_area_t cont_a;
         lv_obj_get_coords(cont, &cont_a);                                                   // 将cont对象的坐标复制到cont_a
-        lv_coord_t cont_y_center = cont_a.y1 + lv_area_get_width(&cont_a) / 2;              // 获取界面的宽像素大小/2 
+        lv_coord_t cont_y_center = cont_a.y1 + lv_area_get_width(&cont_a) / 2;              // 获取界面的宽像素大小/2
 
         /* 注意，这里的中心显示界面的坐标不在正中心，所以这里加上了差值 */
         cont_y_center += 69;
@@ -251,7 +272,7 @@ static void scroll_end_event(lv_event_t * e)
                 lv_obj_set_style_translate_y(lv_obj_get_child(cont, mid_btn_index), 0, 0);
                 break;
             }
-        }            
+        }
     }
 }
 
@@ -319,7 +340,7 @@ void lvgl_scroll_test(void)
     lv_obj_set_scrollbar_mode(cont, LV_SCROLLBAR_MODE_OFF);
 
     uint32_t i;
-    for(i = 0; i < 20; i++) 
+    for(i = 0; i < 20; i++)
     {
         lv_obj_t * btn = lv_btn_create(cont);
         lv_obj_set_width(btn, lv_pct(100));
@@ -344,7 +365,7 @@ void lvgl_scroll_test(void)
         else
         {
             lv_obj_move_to_index(lv_obj_get_child(cont, 0), child_cnt - 1);            // 将第一个界面的索引值改为最大值（移至最后一个界面）
-        }    
+        }
     }
 
     /*当按钮数为偶数时，确保按钮居中*/
@@ -502,7 +523,7 @@ void StateBar()
     lv_obj_set_scrollbar_mode(ALL_Bg,LV_SCROLLBAR_MODE_OFF);
 
 
-    Arc_Out =lv_arc_create(ALL_Bg); 
+    Arc_Out =lv_arc_create(ALL_Bg);
     lv_obj_set_size(Arc_Out,UI_SIZE,UI_SIZE);
     lv_obj_set_style_arc_color(Arc_Out,lv_palette_main(LV_PALETTE_GREY),LV_PART_MAIN);
     lv_obj_set_style_arc_opa(Arc_Out,LV_OPA_50,LV_PART_MAIN);
@@ -514,7 +535,7 @@ void StateBar()
     lv_obj_align(Arc_Out,LV_ALIGN_BOTTOM_LEFT,-5,10);
     lv_obj_add_event_cb(Arc_Out,Arc_Out_CB,LV_EVENT_DRAW_MAIN_END,NULL);
 
-    Arc_In =lv_arc_create(ALL_Bg); 
+    Arc_In =lv_arc_create(ALL_Bg);
     lv_obj_set_size(Arc_In,UI_SIZE-25,UI_SIZE-25);
     lv_obj_align_to(Arc_In,Arc_Out,LV_ALIGN_CENTER,0,0);
     lv_obj_set_style_arc_color(Arc_In,lv_palette_main(LV_PALETTE_GREY),LV_PART_MAIN);
@@ -529,7 +550,7 @@ void StateBar()
     lv_arc_set_bg_angles(Arc_Out,lv_arc_get_angle_start(Arc_In),lv_arc_get_angle_end(Arc_In));
 
 
-    Center = lv_obj_create(ALL_Bg); 
+    Center = lv_obj_create(ALL_Bg);
     lv_obj_set_size(Center,UI_SIZE-45,UI_SIZE-45);
     lv_obj_set_style_radius(Center,LV_RADIUS_CIRCLE,0);
     lv_obj_set_style_bg_opa(Center,LV_OPA_50,LV_PART_MAIN);
@@ -537,7 +558,7 @@ void StateBar()
     lv_obj_set_style_border_width(Center,0,LV_PART_MAIN);
     lv_obj_align_to(Center,Arc_In,LV_ALIGN_CENTER,0,0);
 
-    
+
     text = lv_label_create(ALL_Bg);
     lv_obj_set_style_text_color(text,lv_color_white(),LV_PART_MAIN);
     lv_obj_set_style_text_opa(text,LV_OPA_COVER,LV_PART_MAIN);
@@ -556,12 +577,12 @@ void StateBar()
     lv_obj_add_event_cb(Btn,Btn_CB,LV_EVENT_PRESSED,NULL);
     lv_obj_add_flag(Btn,LV_OBJ_FLAG_HIDDEN);
     lv_obj_align_to(Btn,Arc_In,LV_ALIGN_BOTTOM_RIGHT,-13,0);
-    
+
 
     Atext = lv_label_create(ALL_Bg);
     lv_obj_set_style_text_color(Atext,lv_color_white(),LV_PART_MAIN);
     lv_obj_set_style_flex_flow(Center,LV_FLEX_FLOW_ROW,LV_PART_MAIN);
-    lv_label_set_text_fmt(Atext,LV_SYMBOL_DOWN"\n"LV_SYMBOL_DOWN"\n"LV_SYMBOL_DOWN);   
+    lv_label_set_text_fmt(Atext,LV_SYMBOL_DOWN"\n"LV_SYMBOL_DOWN"\n"LV_SYMBOL_DOWN);
     lv_obj_set_style_text_font(Atext,&lv_font_montserrat_10,LV_PART_MAIN);
     lv_obj_align_to(Atext,Center,LV_ALIGN_CENTER,0,0);
 
