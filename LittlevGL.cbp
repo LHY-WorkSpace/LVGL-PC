@@ -44,6 +44,14 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="LVGL_UI.h" />
+		<Unit filename="Src/Eye.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Src/Eye.h" />
+		<Unit filename="Src/Face.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Src/Face.h" />
 		<Unit filename="lv_conf.h" />
 		<Unit filename="lv_drivers/display/ILI9341.h" />
 		<Unit filename="lv_drivers/display/R61581.h" />

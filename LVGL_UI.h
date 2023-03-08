@@ -16,8 +16,8 @@
     #include "IncludeFile.h"
 #endif
 
-#include "Eye.h"
-
+#include "../Src/Eye.h"
+#include "../Src/Face.h"
 
 
 typedef enum
