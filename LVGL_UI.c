@@ -1,164 +1,8 @@
 #include "LVGL_UI.h"
 
-#ifdef ON_PC
-    #include <stdlib.h>
-    #include <unistd.h>
-    #include "lvgl/lvgl.h"
-    #include "lv_drivers/win32drv/win32drv.h"
-    #include <windows.h>
-#else
-    #include "IncludeFile.h"
-#endif
-
 
 
 #if 1
-
-#define EYE_SIZE    (70)
-
-#define EYE_SIZE_W    (lv_obj_get_width(lv_scr_act())/4)
-#define EYE_SIZE_H    (lv_obj_get_height(lv_scr_act())/4)
-
-
-
-
-int8_t  pos[4][2]=
-{
-    {0,-70},
-    {70,0},
-    {0,70},
-    {-70,0}
-};
-
-
-
-lv_obj_t *ALL_Bg;
-lv_obj_t *Main;
-
-lv_obj_t *EYE_1;
-lv_obj_t *EYE_2;
-lv_obj_t *EYE_3;
-lv_obj_t *EYE_4;
-lv_obj_t *EYE_CENTER;
-lv_anim_t Anima;
-
-void Animation_CB(void *var, int32_t v)
-{
-    lv_obj_align_to(EYE_1,Main,LV_ALIGN_CENTER,0-v,v-70);
-    lv_obj_align_to(EYE_2,Main,LV_ALIGN_CENTER,70-v,0-v);
-    lv_obj_align_to(EYE_3,Main,LV_ALIGN_CENTER,0+v,70-v);
-    lv_obj_align_to(EYE_4,Main,LV_ALIGN_CENTER,-70+v,0+v);
-
-}
-
-
-void StateBar()
-{
-
-
-
-    //创建背景
-    ALL_Bg = lv_obj_create(lv_scr_act());
-    lv_obj_set_size(ALL_Bg,240,240);
-    lv_obj_set_style_bg_color(ALL_Bg,lv_color_black(),LV_PART_MAIN);
-    lv_obj_set_style_radius(ALL_Bg,0,LV_PART_MAIN);
-    lv_obj_set_style_border_side(ALL_Bg,LV_BORDER_SIDE_FULL,LV_PART_MAIN);
-    lv_obj_set_style_border_color(ALL_Bg,lv_color_white(),LV_PART_MAIN);
-    lv_obj_set_style_border_width(ALL_Bg,0,LV_PART_MAIN);
-    lv_obj_set_scrollbar_mode(ALL_Bg,LV_SCROLLBAR_MODE_OFF);
-
-    Main = lv_obj_create(ALL_Bg);
-    lv_obj_set_size(Main,240,240);
-    lv_obj_set_style_bg_color(Main,lv_color_black(),LV_PART_MAIN);
-    lv_obj_set_style_radius(Main,120,LV_PART_MAIN);
-    lv_obj_set_style_border_side(Main,LV_BORDER_SIDE_FULL,LV_PART_MAIN);
-    lv_obj_set_style_border_color(Main,lv_palette_main(LV_PALETTE_GREY),LV_PART_MAIN);
-    lv_obj_set_style_border_width(Main,5,LV_PART_MAIN);
-    lv_obj_set_scrollbar_mode(Main,LV_SCROLLBAR_MODE_OFF);
-    lv_obj_center(Main);
-
-
-    EYE_1 = lv_obj_create(Main);
-    lv_obj_set_size(EYE_1,EYE_SIZE_W,EYE_SIZE_W);
-    lv_obj_set_style_bg_color(EYE_1,lv_color_white(),LV_PART_MAIN);
-    lv_obj_set_style_radius(EYE_1,EYE_SIZE_W/2,LV_PART_MAIN);
-    
-
-    EYE_2 = lv_obj_create(Main);
-    lv_obj_set_size(EYE_2,EYE_SIZE_W,EYE_SIZE_W);
-    lv_obj_set_style_bg_color(EYE_2,lv_color_white(),LV_PART_MAIN);
-    lv_obj_set_style_radius(EYE_2,EYE_SIZE_W/2,LV_PART_MAIN);
-
-    EYE_3 = lv_obj_create(Main);
-    lv_obj_set_size(EYE_3,EYE_SIZE_W,EYE_SIZE_W);
-    lv_obj_set_style_bg_color(EYE_3,lv_color_white(),LV_PART_MAIN);
-    lv_obj_set_style_radius(EYE_3,EYE_SIZE_W/2,LV_PART_MAIN);
-
-    EYE_4 = lv_obj_create(Main);
-    lv_obj_set_size(EYE_4,EYE_SIZE_W,EYE_SIZE_W);
-    lv_obj_set_style_bg_color(EYE_4,lv_color_white(),LV_PART_MAIN);
-    lv_obj_set_style_radius(EYE_4,EYE_SIZE_W/2,LV_PART_MAIN);
-
-
-    // lv_obj_set_flex_align(EYE_2,LV_FLEX_ALIGN_SPACE_AROUND,LV_FLEX_ALIGN_SPACE_AROUND,LV_FLEX_ALIGN_CENTER);
-    // lv_obj_set_flex_align(EYE_3,LV_FLEX_ALIGN_SPACE_AROUND,LV_FLEX_ALIGN_SPACE_AROUND,LV_FLEX_ALIGN_END);
-    // lv_obj_set_flex_align(EYE_1,LV_FLEX_ALIGN_SPACE_AROUND,LV_FLEX_ALIGN_SPACE_AROUND,LV_FLEX_ALIGN_START);
-
-    lv_obj_align_to(EYE_1,Main,LV_ALIGN_CENTER,0,-70);
-    lv_obj_align_to(EYE_2,Main,LV_ALIGN_CENTER,70,0);
-    lv_obj_align_to(EYE_3,Main,LV_ALIGN_CENTER,0,70);
-    lv_obj_align_to(EYE_4,Main,LV_ALIGN_CENTER,-70,0);
-
-
-    lv_anim_init(&Anima);
-
-    lv_anim_set_var(&Anima,EYE_1);
-    lv_anim_set_values(&Anima,0,70);
-    lv_anim_set_time(&Anima, 800);
-    lv_anim_set_exec_cb(&Anima, Animation_CB);
-
-    lv_anim_set_path_cb(&Anima,lv_anim_path_ease_in_out);
-    // lv_anim_set_path_cb(&Anima,lv_anim_path_ease_in);
-    // lv_anim_set_path_cb(&Anima,lv_anim_path_ease_out);//==
-    // lv_anim_set_path_cb(&Anima,lv_anim_path_bounce);//==
-    // lv_anim_set_path_cb(&Anima,lv_anim_path_overshoot);
-    // lv_anim_set_path_cb(&Anima,lv_anim_path_step);
-
-    lv_anim_set_repeat_count(&Anima, LV_ANIM_PLAYTIME_INFINITE);
-
-    lv_anim_start(&Anima);
-
-}
-
-#endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#if 0
-
-
-
 
 static void sw_event_cb(lv_event_t* e)
 {
@@ -330,7 +174,7 @@ void lvgl_scroll_test(void)
     lv_obj_center(cont);
     lv_obj_set_flex_flow(cont, LV_FLEX_FLOW_COLUMN);
 
-    // lv_obj_add_event_cb(cont, scroll_event_cb, LV_EVENT_SCROLL, NULL);       // 为了方便实现，先把滚动的动画屏蔽
+    lv_obj_add_event_cb(cont, scroll_event_cb, LV_EVENT_SCROLL, NULL);       // 为了方便实现，先把滚动的动画屏蔽
     lv_obj_add_event_cb(cont, scroll_end_event, LV_EVENT_SCROLL_END, NULL);
 
     lv_obj_set_style_radius(cont, LV_RADIUS_CIRCLE, 0);
@@ -633,8 +477,8 @@ void LVGL_Init()
 	lv_port_disp_init();
 	lv_port_indev_init();
 #endif
-
-    StateBar();
+    // lvgl_scroll_test();
+    Eye_Create();
     // lv_example_scroll_2();
     // LVGL_Build_GUI();
     // lv_example_soll_6();
