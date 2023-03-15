@@ -4,6 +4,7 @@
 
 lv_obj_t *BackGround;
 lv_obj_t *Face;
+lv_obj_t *Btn[3];
 
 
 void Face_Create()
@@ -17,7 +18,7 @@ void Face_Create()
     lv_obj_set_style_border_width(BackGround,0,LV_PART_MAIN);
     lv_obj_set_scrollbar_mode(BackGround,LV_SCROLLBAR_MODE_OFF);
 
-    Face = lv_obj_create(lv_scr_act());
+    Face = lv_obj_create(BackGround);
     lv_obj_set_size(Face,240,240);
     lv_obj_set_style_bg_color(Face,lv_color_black(),LV_PART_MAIN);
     lv_obj_set_style_radius(Face,120,LV_PART_MAIN);
@@ -30,10 +31,61 @@ void Face_Create()
 }
 
 
+void Btn_Handle(lv_event_t *e)
+{
+	uint8_t i=0;
+    lv_obj_t *Btntmp = lv_event_get_target(e);
+    lv_event_code_t codetmp = lv_event_get_code(e);
+
+    if( lv_event_get_code(e) == LV_EVENT_CLICKED)
+    {
+        // for ( i = 0; i < 3; i++)
+        // {
+            if(Btntmp == Btn[0])
+            {
+                lv_scr_load_anim(Face,LV_SCR_LOAD_ANIM_FADE_OUT,3000,0,false);
+                
+                // StartAnim( i+1);
+                // printf(" %d \r\n",i+1);
+            }
+            else if(Btntmp == Btn[1])
+            {
+                lv_scr_load_anim(Face,LV_SCR_LOAD_ANIM_FADE_IN,3000,0,false);
+            }
+            else
+            {
+                lv_scr_load_anim(BackGround,LV_SCR_LOAD_ANIM_OVER_TOP,3000,0,false);
+            }
+        // }
+    }
+}
+
+
+
+void Btn_Create()
+{
+	uint8_t i=0;
+
+    for ( i = 0; i < 3; i++)
+    {
+        Btn[i] = lv_btn_create(lv_scr_act());
+        lv_obj_align(Btn[i],LV_ALIGN_BOTTOM_LEFT+i,0,0);
+        lv_obj_set_size(Btn[i],40,20);
+        lv_obj_add_event_cb(Btn[i],Btn_Handle,LV_EVENT_CLICKED,NULL);
+    }
+
+}
+
+
+
+
+
+
 void Main_UI()
 {
     Face_Create();
     Eye_Create();
+    Btn_Create();
 
 }
 
