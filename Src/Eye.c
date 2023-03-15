@@ -198,20 +198,29 @@ float FastCos(float x)
 
 
 //Ðý×ª°ë¾¶
-#define R_LEN (70)
+#define R_LEN (45)
 #define EYE_SIZE_W    (60)
+
+#define ROTATEDIR_FORWARD     ( 1)//Ë³Ê±Õë
+#define ROTATEDIR_OPPOSITE    (-1)//ÄæÊ±Õë
 
 lv_obj_t *Eye_Group[4];
 lv_anim_t Anima_Eye_Group[4];
-uint8_t RotateDir = 1;
 
-
+uint8_t RotateDir = ROTATEDIR_FORWARD;
+/*
+	|
+ 2  |  3
+---------
+ 1  |  0
+	|
+*/
 int8_t Eye_Position[4][3]=
 {
-    {0,-R_LEN,0},     //ÉÏ
-    {R_LEN,0, 1},     //ÓÒ
-    {0,R_LEN, 2},     //ÏÂ
-    {-R_LEN,0,3},     //×ó
+    { R_LEN,  R_LEN, 0},
+    {-R_LEN,  R_LEN, 1},
+    {-R_LEN, -R_LEN, 2},
+    { R_LEN, -R_LEN, 3},
 };
 
 
@@ -226,24 +235,25 @@ static void Animation_CB(void *var, int32_t v)
     {
         if(Eye_tmp == Eye_Group[i])
         {
-            if( RotateDir == 0)
-            {
-                x1=(Eye_Position[i][0])*FastCos(DEGTORAD(v))-(Eye_Position[i][1])*FastSin(DEGTORAD(v));
-                y1=(Eye_Position[i][1])*FastCos(DEGTORAD(v))+(Eye_Position[i][0])*FastSin(DEGTORAD(v));  
-            }
-            else
-            {
-                x1=(Eye_Position[i][0])*FastCos(DEGTORAD(v))+(Eye_Position[i][1])*FastSin(DEGTORAD(v));
-                y1=(Eye_Position[i][1])*FastCos(DEGTORAD(v))-(Eye_Position[i][0])*FastSin(DEGTORAD(v));  
-            }
+			if( RotateDir == 1)
+			{
+				//Ë³Ê±Õë
+				x1=(Eye_Position[Eye_Position[i][2]][0])*FastCos(DEGTORAD(v))-(Eye_Position[Eye_Position[i][2]][1])*FastSin(DEGTORAD(v));
+				y1=(Eye_Position[Eye_Position[i][2]][1])*FastCos(DEGTORAD(v))+(Eye_Position[Eye_Position[i][2]][0])*FastSin(DEGTORAD(v));  
+			}
+			else
+			{
+				//ÄæÊ±Õë
+				x1=(Eye_Position[Eye_Position[i][2]][0])*FastCos(DEGTORAD(v))+(Eye_Position[Eye_Position[i][2]][1])*FastSin(DEGTORAD(v));
+				y1=(Eye_Position[Eye_Position[i][2]][1])*FastCos(DEGTORAD(v))-(Eye_Position[Eye_Position[i][2]][0])*FastSin(DEGTORAD(v));  
+			}
 
+			lv_obj_align_to(Eye_Group[i],Face,LV_ALIGN_CENTER,x1,y1);
 
-            lv_obj_align_to(Eye_Group[Eye_Position[i][2]],Face,LV_ALIGN_CENTER,x1,y1);
-
-            if( (x1 == Eye_Position[(i+1)%4][0] ) && (y1 == Eye_Position[(i+1)%4][1]))
-            {
-                Eye_Position[i][2] = (i+1)%4;
-            }
+			if( v == 90)
+			{
+				Eye_Position[i][2] = (Eye_Position[i][2] +RotateDir)%4;
+			}
         }
     }
 }
@@ -264,17 +274,23 @@ void Eye_Create()
         lv_obj_set_style_outline_width(Eye_Group[i],3,LV_PART_MAIN);
         lv_obj_set_style_outline_color(Eye_Group[i],lv_palette_main(LV_PALETTE_RED),LV_PART_MAIN);
 
+        lv_obj_t * label = lv_label_create(Eye_Group[i]);
+
+        lv_label_set_text_fmt(label, "%"LV_PRIu32, i);
+        lv_obj_align_to(label,Eye_Group[i],LV_ALIGN_CENTER,0,0);
+
         lv_obj_align_to(Eye_Group[i],Face,LV_ALIGN_CENTER,Eye_Position[i][0],Eye_Position[i][1]);
 
         lv_anim_init(&Anima_Eye_Group[i]);
         lv_anim_set_var(&Anima_Eye_Group[i],Eye_Group[i]);
         lv_anim_set_values(&Anima_Eye_Group[i],0,90);
-        lv_anim_set_time(&Anima_Eye_Group[i], 500);
+        lv_anim_set_time(&Anima_Eye_Group[i], 200);
+		lv_anim_set_delay(&Anima_Eye_Group[i], 500);
         lv_anim_set_exec_cb(&Anima_Eye_Group[i], Animation_CB);
-        lv_anim_set_path_cb(&Anima_Eye_Group[i],lv_anim_path_bounce);
+        lv_anim_set_path_cb(&Anima_Eye_Group[i],lv_anim_path_ease_in_out);
 
         lv_anim_set_repeat_delay(&Anima_Eye_Group[i],500);
-        lv_anim_set_repeat_count(&Anima_Eye_Group[i], LV_ANIM_PLAYTIME_INFINITE);
+        lv_anim_set_repeat_count(&Anima_Eye_Group[i], LV_ANIM_REPEAT_INFINITE);
 
     }
 
@@ -282,48 +298,6 @@ void Eye_Create()
     {
         lv_anim_start(&Anima_Eye_Group[i]);
     }
-
-
-    // lv_anim_set_path_cb(&Anima,lv_anim_path_ease_in_out);
-    // lv_anim_set_path_cb(&Anima,lv_anim_path_ease_in);
-    // lv_anim_set_path_cb(&Anima,lv_anim_path_ease_out);//==
-    // lv_anim_set_path_cb(&Anima,lv_anim_path_bounce);//==
-    // lv_anim_set_path_cb(&Anima,lv_anim_path_overshoot);
-    // lv_anim_set_path_cb(&Anima,lv_anim_path_step);
-
-
-    // lv_anim_set_repeat_delay(&Anima_Eye1,500);
-    // lv_anim_set_repeat_count(&Anima_Eye1, LV_ANIM_PLAYTIME_INFINITE);
-    // lv_anim_start(&Anima_Eye1);
-
-
-    // lv_anim_timeline_t *Timeline = lv_anim_timeline_create();
-    // lv_anim_timeline_add(Timeline,0,&Anima);
-    // lv_anim_timeline_add(Timeline,0,&Anima);
-    // lv_anim_timeline_add(Timeline,0,&Anima);
-    // lv_anim_timeline_add(Timeline,0,&Anima);
-    // lv_anim_timeline_start();
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
