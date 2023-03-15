@@ -39,24 +39,14 @@ void Btn_Handle(lv_event_t *e)
 
     if( lv_event_get_code(e) == LV_EVENT_CLICKED)
     {
-        // for ( i = 0; i < 3; i++)
-        // {
-            if(Btntmp == Btn[0])
+        for ( i = 0; i < 3; i++)
+        {
+            if(Btntmp == Btn[i])
             {
-                lv_scr_load_anim(Face,LV_SCR_LOAD_ANIM_FADE_OUT,3000,0,false);
-                
-                // StartAnim( i+1);
-                // printf(" %d \r\n",i+1);
+            StartAnim( i+1);
+            printf(" %d \r\n",i+1);
             }
-            else if(Btntmp == Btn[1])
-            {
-                lv_scr_load_anim(Face,LV_SCR_LOAD_ANIM_FADE_IN,3000,0,false);
-            }
-            else
-            {
-                lv_scr_load_anim(BackGround,LV_SCR_LOAD_ANIM_OVER_TOP,3000,0,false);
-            }
-        // }
+        }
     }
 }
 
@@ -71,6 +61,7 @@ void Btn_Create()
         Btn[i] = lv_btn_create(lv_scr_act());
         lv_obj_align(Btn[i],LV_ALIGN_BOTTOM_LEFT+i,0,0);
         lv_obj_set_size(Btn[i],40,20);
+        lv_obj_set_style_bg_color(Btn[i],lv_color_make(74,117,37),LV_PART_MAIN);
         lv_obj_add_event_cb(Btn[i],Btn_Handle,LV_EVENT_CLICKED,NULL);
     }
 
