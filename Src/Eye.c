@@ -206,7 +206,8 @@ float FastCos(float x)
 
 lv_obj_t *Eye_Group[4];
 lv_anim_t Anima_Eye_Group[4];
-
+lv_obj_t *Eye_base[4];//瞳孔
+lv_anim_t Anima_Eye_Size[4];
 uint8_t RotateDir = ROTATEDIR_FORWARD;
 /*
 	|
@@ -237,7 +238,7 @@ int8_t Eye_Position[4][3]=
 static void Animation_CB(void *var, int32_t v)
 {
     uint8_t i,j;
-    int16_t x,y,x1,y1;
+    int16_t x1,y1;
 
     lv_obj_t *Eye_tmp = (lv_obj_t *)var;
 
@@ -263,6 +264,11 @@ static void Animation_CB(void *var, int32_t v)
 			if( v == 90)
 			{
 				Eye_Position[i][2] = (Eye_Position[i][2] +RotateDir)%4;
+
+				lv_anim_set_repeat_count(&Anima_Eye_Size[i], 2);
+				//旋转结束后调整眼部焦距
+				lv_anim_start(&Anima_Eye_Size[i]);
+
 			}
         }
     }
@@ -272,7 +278,6 @@ static void Animation_CB(void *var, int32_t v)
 void Eye0_Create()
 {
 	lv_obj_t *Eye_in;
-	lv_obj_t *Eye_base;
 
 	Eye_Group[0] = lv_obj_create(Face);
 	lv_obj_set_size(Eye_Group[0],EYE_SIZE_W,EYE_SIZE_W);
@@ -283,12 +288,12 @@ void Eye0_Create()
 
 
 
-	Eye_base = lv_obj_create(Eye_Group[0]);
-	lv_obj_set_size(Eye_base,40,40);
-	lv_obj_set_style_radius(Eye_base,20,LV_PART_MAIN);
-	lv_obj_align_to(Eye_base,Eye_Group[0],LV_ALIGN_CENTER,0,0);
-	lv_obj_set_style_bg_color(Eye_base,lv_color_black(),LV_PART_MAIN);
-    lv_obj_set_scrollbar_mode(Eye_base,LV_SCROLLBAR_MODE_OFF);
+	Eye_base[0] = lv_obj_create(Eye_Group[0]);
+	lv_obj_set_size(Eye_base[0],40,40);
+	lv_obj_set_style_radius(Eye_base[0],20,LV_PART_MAIN);
+	lv_obj_align_to(Eye_base[0],Eye_Group[0],LV_ALIGN_CENTER,0,0);
+	lv_obj_set_style_bg_color(Eye_base[0],lv_color_black(),LV_PART_MAIN);
+    lv_obj_set_scrollbar_mode(Eye_base[0],LV_SCROLLBAR_MODE_OFF);
 
 	Eye_in = lv_obj_create(Eye_Group[0]);
 	lv_obj_set_size(Eye_in,12,12);
@@ -309,7 +314,6 @@ void Eye1_Create()
 {
 
 	lv_obj_t *Eye_in;
-	lv_obj_t *Eye_base;
 
 	Eye_Group[1] = lv_obj_create(Face);
 	lv_obj_set_size(Eye_Group[1],EYE_SIZE_W,EYE_SIZE_W);
@@ -320,12 +324,12 @@ void Eye1_Create()
 
 
 
-	Eye_base = lv_obj_create(Eye_Group[1]);
-	lv_obj_set_size(Eye_base,40,40);
-	lv_obj_set_style_radius(Eye_base,20,LV_PART_MAIN);
-	lv_obj_align_to(Eye_base,Eye_Group[1],LV_ALIGN_CENTER,0,0);
-	lv_obj_set_style_bg_color(Eye_base,lv_color_black(),LV_PART_MAIN);
-    lv_obj_set_scrollbar_mode(Eye_base,LV_SCROLLBAR_MODE_OFF);
+	Eye_base[1] = lv_obj_create(Eye_Group[1]);
+	lv_obj_set_size(Eye_base[1],40,40);
+	lv_obj_set_style_radius(Eye_base[1],20,LV_PART_MAIN);
+	lv_obj_align_to(Eye_base[1],Eye_Group[1],LV_ALIGN_CENTER,0,0);
+	lv_obj_set_style_bg_color(Eye_base[1],lv_color_black(),LV_PART_MAIN);
+    lv_obj_set_scrollbar_mode(Eye_base[1],LV_SCROLLBAR_MODE_OFF);
 
 	Eye_in = lv_obj_create(Eye_Group[1]);
 	lv_obj_set_size(Eye_in,12,12);
@@ -346,7 +350,6 @@ void Eye2_Create()
 {
 
 	lv_obj_t *Eye_in;
-	lv_obj_t *Eye_base;
 
 	Eye_Group[2] = lv_obj_create(Face);
 	lv_obj_set_size(Eye_Group[2],EYE_SIZE_W,EYE_SIZE_W);
@@ -356,12 +359,12 @@ void Eye2_Create()
 	lv_obj_set_style_outline_color(Eye_Group[2],lv_color_make(84,104,58),LV_PART_MAIN);
 
 
-	Eye_base = lv_obj_create(Eye_Group[2]);
-	lv_obj_set_size(Eye_base,40,40);
-	lv_obj_set_style_radius(Eye_base,20,LV_PART_MAIN);
-	lv_obj_align_to(Eye_base,Eye_Group[2],LV_ALIGN_CENTER,0,0);
-	lv_obj_set_style_bg_color(Eye_base,lv_color_black(),LV_PART_MAIN);
-    lv_obj_set_scrollbar_mode(Eye_base,LV_SCROLLBAR_MODE_OFF);
+	Eye_base[2] = lv_obj_create(Eye_Group[2]);
+	lv_obj_set_size(Eye_base[2],40,40);
+	lv_obj_set_style_radius(Eye_base[2],20,LV_PART_MAIN);
+	lv_obj_align_to(Eye_base[2],Eye_Group[2],LV_ALIGN_CENTER,0,0);
+	lv_obj_set_style_bg_color(Eye_base[2],lv_color_black(),LV_PART_MAIN);
+    lv_obj_set_scrollbar_mode(Eye_base[2],LV_SCROLLBAR_MODE_OFF);
 
 	Eye_in = lv_obj_create(Eye_Group[2]);
 	lv_obj_set_size(Eye_in,12,12);
@@ -384,7 +387,7 @@ void Eye3_Create()
 {
 
 	lv_obj_t *Eye_in;
-	lv_obj_t *Eye_base;
+
 
 	Eye_Group[3] = lv_obj_create(Face);
 	lv_obj_set_size(Eye_Group[3],EYE_SIZE_W,EYE_SIZE_W);
@@ -394,12 +397,12 @@ void Eye3_Create()
 	lv_obj_set_style_outline_color(Eye_Group[3],lv_color_make(84,104,58),LV_PART_MAIN);
 
 
-	Eye_base = lv_obj_create(Eye_Group[3]);
-	lv_obj_set_size(Eye_base,40,40);
-	lv_obj_set_style_radius(Eye_base,20,LV_PART_MAIN);
-	lv_obj_align_to(Eye_base,Eye_Group[3],LV_ALIGN_CENTER,0,0);
-	lv_obj_set_style_bg_color(Eye_base,lv_color_black(),LV_PART_MAIN);
-    lv_obj_set_scrollbar_mode(Eye_base,LV_SCROLLBAR_MODE_OFF);
+	Eye_base[3] = lv_obj_create(Eye_Group[3]);
+	lv_obj_set_size(Eye_base[3],40,40);
+	lv_obj_set_style_radius(Eye_base[3],20,LV_PART_MAIN);
+	lv_obj_align_to(Eye_base[3],Eye_Group[3],LV_ALIGN_CENTER,0,0);
+	lv_obj_set_style_bg_color(Eye_base[3],lv_color_black(),LV_PART_MAIN);
+    lv_obj_set_scrollbar_mode(Eye_base[3],LV_SCROLLBAR_MODE_OFF);
 
 	Eye_in = lv_obj_create(Eye_Group[3]);
 	lv_obj_set_size(Eye_in,12,12);
@@ -422,14 +425,37 @@ void Eye3_Create()
 void Eye_Create()
 {
     uint8_t i=0;
-
-	Eye0_Create();
-	Eye1_Create();
-	Eye2_Create();
-	Eye3_Create();
+	lv_obj_t *Eye_in;
+	// Eye0_Create();
+	// Eye1_Create();
+	// Eye2_Create();
+	// Eye3_Create();
 
     for ( i = 0; i < 4; i++)
     {
+		//眼球
+		Eye_Group[i] = lv_obj_create(Face);
+		lv_obj_set_size(Eye_Group[i],EYE_SIZE_W,EYE_SIZE_W);
+		lv_obj_set_style_bg_color(Eye_Group[i],lv_color_make(56,110,23),LV_PART_MAIN);
+		lv_obj_set_style_radius(Eye_Group[i],EYE_SIZE_W/2,LV_PART_MAIN);
+		lv_obj_set_style_outline_width(Eye_Group[i],3,LV_PART_MAIN);
+		lv_obj_set_style_outline_color(Eye_Group[i],lv_color_make(84,104,58),LV_PART_MAIN);
+
+		//瞳孔
+		Eye_base[i] = lv_obj_create(Eye_Group[i]);
+		lv_obj_set_size(Eye_base[i],40,40);
+		lv_obj_set_style_radius(Eye_base[i],20,LV_PART_MAIN);
+		lv_obj_align_to(Eye_base[i],Eye_Group[i],LV_ALIGN_CENTER,0,0);
+		lv_obj_set_style_bg_color(Eye_base[i],lv_color_black(),LV_PART_MAIN);
+		lv_obj_set_scrollbar_mode(Eye_base[i],LV_SCROLLBAR_MODE_OFF);
+
+		//眼部高光
+		Eye_in = lv_obj_create(Eye_Group[i]);
+		lv_obj_set_size(Eye_in,12,12);
+		lv_obj_set_style_radius(Eye_in,6,LV_PART_MAIN);
+		lv_obj_align_to(Eye_in,Eye_Group[i],LV_ALIGN_TOP_RIGHT,5,-7);
+		lv_obj_set_scrollbar_mode(Eye_in,LV_SCROLLBAR_MODE_OFF);
+
 		lv_obj_set_scrollbar_mode(Eye_Group[i],LV_SCROLLBAR_MODE_OFF);//关闭滚动条
         lv_obj_align_to(Eye_Group[i],Face,LV_ALIGN_CENTER,Eye_Position[i][0],Eye_Position[i][1]);
 
@@ -439,23 +465,28 @@ void Eye_Create()
         lv_anim_set_time(&Anima_Eye_Group[i], 300);
 		// lv_anim_set_delay(&Anima_Eye_Group[i], 500);
         lv_anim_set_exec_cb(&Anima_Eye_Group[i], Animation_CB);
+        lv_anim_set_path_cb(&Anima_Eye_Group[i],lv_anim_path_ease_in_out);
 
-        lv_anim_set_path_cb(&Anima_Eye_Group[i],lv_anim_path_ease_out);
 		// lv_anim_set_path_cb(&Anima_Eye1,lv_anim_path_ease_in_out);
 		// lv_anim_set_path_cb(&Anima_Eye1,lv_anim_path_linear);
 		// lv_anim_set_path_cb(&Anima,lv_anim_path_ease_in);
 		// lv_anim_set_path_cb(&Anima,lv_anim_path_ease_out);//==
 
+		// lv_anim_set_playback_time(&Anima_Eye_Size[i],200);
+		// lv_anim_set_playback_delay(&Anima_Eye_Size[i],200);
         lv_anim_set_repeat_delay(&Anima_Eye_Group[i],200);
-        lv_anim_set_repeat_count(&Anima_Eye_Group[i], 0);
+        lv_anim_set_repeat_count(&Anima_Eye_Group[i], 3);
 
     }
+
+	ChangeSizeAnima();
 
     for ( i = 0; i < 4; i++)
     {
         lv_anim_start(&Anima_Eye_Group[i]);
     }
 }
+
 
 void StartAnim( uint8_t Time)
 {
@@ -470,19 +501,86 @@ void StartAnim( uint8_t Time)
 				lv_anim_set_repeat_count(&Anima_Eye_Group[i], 1);
 				break;
 			case 2:
-				RotateDir = ROTATEDIR_OPPOSITE;
-				lv_anim_set_repeat_count(&Anima_Eye_Group[i], 1);
+				lv_anim_set_repeat_count(&Anima_Eye_Size[i], 2);
 				break;	
 			case 3:
-				lv_anim_set_repeat_count(&Anima_Eye_Group[i], LV_ANIM_REPEAT_INFINITE);
+				RotateDir = ROTATEDIR_OPPOSITE;
+				lv_anim_set_repeat_count(&Anima_Eye_Group[i], 1);
 				break;
 			default:
 				break;
 		}
     }
 
+	if(Time != 2)
+	{
+		for ( i = 0; i < 4; i++)
+		{
+			lv_anim_start(&Anima_Eye_Group[i]);
+		}
+	}
+	else
+	{
+		for ( i = 0; i < 4; i++)
+		{
+			lv_anim_start(&Anima_Eye_Size[i]);
+		}
+	}
+}
+
+
+
+
+
+void ChangeSizeAnimaCB(void *var, int32_t v)
+{
+	uint8_t i,j;
+
+    lv_obj_t *Eye_tmp = (lv_obj_t *)var;
+
     for ( i = 0; i < 4; i++)
     {
-        lv_anim_start(&Anima_Eye_Group[i]);
+        if(Eye_tmp == Eye_base[i])
+        {
+			lv_obj_set_size(Eye_tmp,v,v);
+			lv_obj_set_style_radius(Eye_tmp,v/2,LV_PART_MAIN);
+			lv_obj_align_to(Eye_tmp,Eye_Group[i],LV_ALIGN_CENTER,0,0);
+        }
     }
 }
+
+
+void ChangeSizeAnima()
+{
+	uint8_t i=0;
+
+	for (i = 0; i < 4; i++)
+	{
+		
+		lv_anim_init(&Anima_Eye_Size[i]);
+        lv_anim_set_var(&Anima_Eye_Size[i],Eye_base[i]);
+        lv_anim_set_values(&Anima_Eye_Size[i],40,30);
+        lv_anim_set_time(&Anima_Eye_Size[i], 200);
+		lv_anim_set_delay(&Anima_Eye_Size[i], 500);//1500
+        lv_anim_set_exec_cb(&Anima_Eye_Size[i], ChangeSizeAnimaCB);
+
+        lv_anim_set_path_cb(&Anima_Eye_Size[i],lv_anim_path_ease_in_out);
+		// lv_anim_set_path_cb(&Anima_Eye1,lv_anim_path_ease_in_out);
+		// lv_anim_set_path_cb(&Anima_Eye1,lv_anim_path_linear);
+		// lv_anim_set_path_cb(&Anima,lv_anim_path_ease_in);
+		// lv_anim_set_path_cb(&Anima,lv_anim_path_ease_out);//==
+
+
+		lv_anim_set_playback_time(&Anima_Eye_Size[i],200);
+		lv_anim_set_playback_delay(&Anima_Eye_Size[i],200);
+        lv_anim_set_repeat_delay(&Anima_Eye_Size[i],500);
+        lv_anim_set_repeat_count(&Anima_Eye_Size[i], 1);
+
+	}
+
+    for ( i = 0; i < 4; i++)
+    {
+        lv_anim_start(&Anima_Eye_Size[i]);
+    }
+}
+
