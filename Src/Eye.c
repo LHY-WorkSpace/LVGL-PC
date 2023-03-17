@@ -15,8 +15,9 @@
 
 
 //Ðý×ª°ë¾¶
-#define R_LEN (45)
-#define EYE_SIZE_W    (60)
+#define R_LEN (47)
+#define EYE_SIZE_W    		(60)
+#define EYE_HOLE_SIZE_W		(40)
 
 #define ROTATEDIR_FORWARD     ( 1)//Ë³Ê±Õë
 #define ROTATEDIR_OPPOSITE    (-1)//ÄæÊ±Õë
@@ -133,8 +134,8 @@ void Eye_BodyCreate()
 
 		//Í«¿×
 		Eye_base[i] = lv_obj_create(Eye_Group[i]);
-		lv_obj_set_size(Eye_base[i],40,40);
-		lv_obj_set_style_radius(Eye_base[i],20,LV_PART_MAIN);
+		lv_obj_set_size(Eye_base[i],EYE_HOLE_SIZE_W,EYE_HOLE_SIZE_W);
+		lv_obj_set_style_radius(Eye_base[i],EYE_HOLE_SIZE_W/2,LV_PART_MAIN);
 		lv_obj_align_to(Eye_base[i],Eye_Group[i],LV_ALIGN_CENTER,0,0);
 		lv_obj_set_style_bg_color(Eye_base[i],lv_color_black(),LV_PART_MAIN);
 		lv_obj_set_scrollbar_mode(Eye_base[i],LV_SCROLLBAR_MODE_OFF);
@@ -193,14 +194,14 @@ void EyeFocalizeAnimCreat()
 	{
 		lv_anim_init(&EyeFocalize_Anim[i]);
         lv_anim_set_var(&EyeFocalize_Anim[i],Eye_base[i]);
-        lv_anim_set_values(&EyeFocalize_Anim[i],40,30);
+        lv_anim_set_values(&EyeFocalize_Anim[i],EYE_HOLE_SIZE_W,30);
         lv_anim_set_time(&EyeFocalize_Anim[i], 200);
 		lv_anim_set_delay(&EyeFocalize_Anim[i], 500);//1500
         lv_anim_set_exec_cb(&EyeFocalize_Anim[i], ChangeEyeFocalize_CB);
         lv_anim_set_path_cb(&EyeFocalize_Anim[i],lv_anim_path_ease_in_out);
 		lv_anim_set_playback_time(&EyeFocalize_Anim[i],200);
 		lv_anim_set_playback_delay(&EyeFocalize_Anim[i],200);
-        lv_anim_set_repeat_delay(&EyeFocalize_Anim[i],100);
+        lv_anim_set_repeat_delay(&EyeFocalize_Anim[i],300);
         lv_anim_set_repeat_count(&EyeFocalize_Anim[i], 1);
 
 	}
@@ -250,8 +251,8 @@ void SetEyeBgColor(lv_palette_t color)
 
     for ( i = 0; i < 4; i++)
     {
-		lv_obj_set_style_bg_color(Eye_Group[i],lv_palette_darken(color,2),LV_PART_MAIN);
-		// lv_obj_set_style_bg_color(Eye_Group[i],lv_palette_main(color),LV_PART_MAIN);
+		// lv_obj_set_style_bg_color(Eye_Group[i],lv_palette_darken(color,2),LV_PART_MAIN);
+		lv_obj_set_style_bg_color(Eye_Group[i],lv_palette_main(color),LV_PART_MAIN);
     }
 }
 
