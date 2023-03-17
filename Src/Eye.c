@@ -276,15 +276,12 @@ void StartAnim( uint8_t Time)
 		switch (Time)
 		{
 			case 1:
-				SetEyeBgColor(LV_PALETTE_BLUE);
 				RotateEye(ROTATEDIR_FORWARD, 1);
 				break;
 			case 2:
-				SetEyeBgColor(LV_PALETTE_RED);
 				ChangeEyeFocalize(1);
 				break;	
 			case 3:
-				SetEyeBgColor(LV_PALETTE_GREEN);
 				RotateEye(ROTATEDIR_OPPOSITE, 1);
 				break;
 			default:

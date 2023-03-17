@@ -24,13 +24,6 @@
 #include "../Src/Face.h"
 
 
-typedef enum
-{
-    Charing,
-    Full,
-    InRelease
-}BarState_e;
-
 void LVGL_Init(void);
 void LVGL_Task(void);
 #endif
