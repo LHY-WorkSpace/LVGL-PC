@@ -12,8 +12,12 @@
     #include "lvgl/lvgl.h"
     #include "lv_drivers/win32drv/win32drv.h"
     #include <windows.h>
+    #include <math.h> 
 #else
     #include "IncludeFile.h"
+    #define cos        FastCos
+    #define sin        FastSin
+
 #endif
 
 #include "../Src/Eye.h"

@@ -75,7 +75,7 @@ void Btn_Create()
 void Main_UI()
 {
     Face_Create();
-    Eye_Create();
+    Eye_Main();
     Btn_Create();
 
 }
