@@ -22,7 +22,7 @@
 
 #include "../Src/Eye.h"
 #include "../Src/Face.h"
-
+#include "../Src/Meter.h"
 
 void LVGL_Init(void);
 void LVGL_Task(void);

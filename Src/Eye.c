@@ -308,7 +308,12 @@ void StartAnim( uint8_t Time)
 				RotateEye(ROTATEDIR_FORWARD, 1);
 				break;
 			case 2:
-				ChangeEyeFocalize(1);
+			/// Meter_Bg;
+				//ChangeEyeFocalize(1);
+				// lv_scr_load_anim(Face,LV_SCR_LOAD_ANIM_FADE_OUT,1000,100,false);
+				MeterTest();
+				lv_scr_load_anim(Meter_Bg,LV_SCR_LOAD_ANIM_OVER_TOP,1000,100,false);
+
 				break;	
 			case 3:
 				RotateEye(ROTATEDIR_OPPOSITE, 1);

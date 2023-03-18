@@ -18,7 +18,10 @@ void Face_Create()
     lv_obj_set_style_border_width(BackGround,0,LV_PART_MAIN);
     lv_obj_set_scrollbar_mode(BackGround,LV_SCROLLBAR_MODE_OFF);
 
-    Face = lv_obj_create(BackGround);
+
+
+
+    Face = lv_obj_create(lv_scr_act());
     lv_obj_set_size(Face,240,240);
     lv_obj_set_style_bg_color(Face,lv_color_black(),LV_PART_MAIN);
     lv_obj_set_style_radius(Face,120,LV_PART_MAIN);
@@ -27,6 +30,11 @@ void Face_Create()
     lv_obj_set_style_border_width(Face,5,LV_PART_MAIN);
     lv_obj_set_scrollbar_mode(Face,LV_SCROLLBAR_MODE_OFF);
     lv_obj_center(Face);
+
+
+    // lv_scr_load(BackGround);
+    // lv_scr_load(Face);
+
 
 }
 
@@ -77,6 +85,7 @@ void Main_UI()
     Face_Create();
     Eye_Main();
     Btn_Create();
+    // MeterTest();
 
 }
 
