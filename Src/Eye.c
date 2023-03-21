@@ -18,16 +18,18 @@
 #define R_LEN (47)
 
 //眼球直径
-#define EYE_SIZE_W    		(60)
+#define EYE_SIZE    		(60)
 
 //瞳孔直径
-#define EYE_HOLE_SIZE_W		(35)
+#define EYE_HOLE_SIZE		(35)
+//瞳孔最小直径(动画)
+#define EYE_HOLE_MIN_SIZE		(25)
 
 //高光直径
 #define EYE_HIGHLIGHT_SIZE			(15)
 
 //高光移动角度倍数(越大移动越远)
-#define EYE_HIGHLIGHT_ANGLE_G		(10)
+#define EYE_HIGHLIGHT_ANGLE_G		(8)
 
 //上部高光初始位置
 #define EYE_HIGHLIGHT_HIGH_X	( 15)
@@ -45,12 +47,12 @@
 #define DEGTORAD(x) ((x) * 0.01745329251994329576923690768489f)
 
 lv_obj_t *Eye_Group[4];
-lv_anim_t EyeBodyPath_Anim[4];
 lv_obj_t *Eye_base[4];//瞳孔
 lv_obj_t *Eye_in_high[4];
 lv_obj_t *Eye_in_low[4];
-
+lv_anim_t EyeBodyPath_Anim[4];
 lv_anim_t EyeFocalize_Anim[4];
+lv_anim_t EyeBaseMove_Anim[4];
 
 uint8_t RotateDir = ROTATEDIR_OPPOSITE;
 
@@ -137,13 +139,13 @@ static void ChangeEyeFocalize_CB(void *var, int32_t v)
 			lv_obj_align_to(Eye_tmp,Eye_Group[i],LV_ALIGN_CENTER,0,0);
 
 			//逆时针
-			x1=(EYE_HIGHLIGHT_HIGH_X)*cos(DEGTORAD((EYE_HOLE_SIZE_W-v)*EYE_HIGHLIGHT_ANGLE_G))+(EYE_HIGHLIGHT_HIGH_Y)*sin(DEGTORAD((EYE_HOLE_SIZE_W-v)*EYE_HIGHLIGHT_ANGLE_G));
-			y1=(EYE_HIGHLIGHT_HIGH_Y)*cos(DEGTORAD((EYE_HOLE_SIZE_W-v)*EYE_HIGHLIGHT_ANGLE_G))-(EYE_HIGHLIGHT_HIGH_X)*sin(DEGTORAD((EYE_HOLE_SIZE_W-v)*EYE_HIGHLIGHT_ANGLE_G)); 
+			x1=(EYE_HIGHLIGHT_HIGH_X)*cos(DEGTORAD((EYE_HOLE_SIZE-v)*EYE_HIGHLIGHT_ANGLE_G))+(EYE_HIGHLIGHT_HIGH_Y)*sin(DEGTORAD((EYE_HOLE_SIZE-v)*EYE_HIGHLIGHT_ANGLE_G));
+			y1=(EYE_HIGHLIGHT_HIGH_Y)*cos(DEGTORAD((EYE_HOLE_SIZE-v)*EYE_HIGHLIGHT_ANGLE_G))-(EYE_HIGHLIGHT_HIGH_X)*sin(DEGTORAD((EYE_HOLE_SIZE-v)*EYE_HIGHLIGHT_ANGLE_G)); 
 			lv_obj_align_to(Eye_in_high[i],Eye_Group[i],LV_ALIGN_CENTER,x1,y1);
 
 			//逆时针
-			x1=(EYE_HIGHLIGHT_LOW_X)*cos(DEGTORAD((EYE_HOLE_SIZE_W-v)*EYE_HIGHLIGHT_ANGLE_G))+(EYE_HIGHLIGHT_LOW_Y)*sin(DEGTORAD((EYE_HOLE_SIZE_W-v)*EYE_HIGHLIGHT_ANGLE_G));
-			y1=(EYE_HIGHLIGHT_LOW_Y)*cos(DEGTORAD((EYE_HOLE_SIZE_W-v)*EYE_HIGHLIGHT_ANGLE_G))-(EYE_HIGHLIGHT_LOW_X)*sin(DEGTORAD((EYE_HOLE_SIZE_W-v)*EYE_HIGHLIGHT_ANGLE_G));  
+			x1=(EYE_HIGHLIGHT_LOW_X)*cos(DEGTORAD((EYE_HOLE_SIZE-v)*EYE_HIGHLIGHT_ANGLE_G))+(EYE_HIGHLIGHT_LOW_Y)*sin(DEGTORAD((EYE_HOLE_SIZE-v)*EYE_HIGHLIGHT_ANGLE_G));
+			y1=(EYE_HIGHLIGHT_LOW_Y)*cos(DEGTORAD((EYE_HOLE_SIZE-v)*EYE_HIGHLIGHT_ANGLE_G))-(EYE_HIGHLIGHT_LOW_X)*sin(DEGTORAD((EYE_HOLE_SIZE-v)*EYE_HIGHLIGHT_ANGLE_G));  
 			lv_obj_align_to(Eye_in_low[i],Eye_Group[i],LV_ALIGN_CENTER,x1,y1);
 
         }
@@ -155,25 +157,24 @@ static void ChangeEyeFocalize_CB(void *var, int32_t v)
 void Eye_BodyCreate()
 {
     uint8_t i=0;
-	lv_obj_t *Eye_in;
 
     for ( i = 0; i < 4; i++)
     {
 		//眼球 37,58,18   56,110,23   
 		Eye_Group[i] = lv_obj_create(Face);
-		lv_obj_set_size(Eye_Group[i],EYE_SIZE_W,EYE_SIZE_W);
-		lv_obj_set_style_bg_color(Eye_Group[i],lv_color_make(56,110,23),LV_PART_MAIN);
-		lv_obj_set_style_radius(Eye_Group[i],EYE_SIZE_W/2,LV_PART_MAIN);
+		lv_obj_set_size(Eye_Group[i],EYE_SIZE,EYE_SIZE);
+		lv_obj_set_style_bg_color(Eye_Group[i],lv_color_make(56,110,23),LV_PART_MAIN);//瞳孔颜色
+		lv_obj_set_style_radius(Eye_Group[i],EYE_SIZE/2,LV_PART_MAIN);
 		lv_obj_set_style_outline_width(Eye_Group[i],3,LV_PART_MAIN);
-		lv_obj_set_style_outline_color(Eye_Group[i],lv_color_make(84,104,58),LV_PART_MAIN);
+		lv_obj_set_style_outline_color(Eye_Group[i],lv_color_make(84,104,58),LV_PART_MAIN);//瞳孔外轮廓颜色
 		lv_obj_set_scrollbar_mode(Eye_Group[i],LV_SCROLLBAR_MODE_OFF);//关闭滚动条
         lv_obj_align_to(Eye_Group[i],Face,LV_ALIGN_CENTER,Eye_Position[i][0],Eye_Position[i][1]);
 
 
 		//瞳孔
 		Eye_base[i] = lv_obj_create(Eye_Group[i]);
-		lv_obj_set_size(Eye_base[i],EYE_HOLE_SIZE_W,EYE_HOLE_SIZE_W);
-		lv_obj_set_style_radius(Eye_base[i],EYE_HOLE_SIZE_W/2,LV_PART_MAIN);
+		lv_obj_set_size(Eye_base[i],EYE_HOLE_SIZE,EYE_HOLE_SIZE);
+		lv_obj_set_style_radius(Eye_base[i],EYE_HOLE_SIZE/2,LV_PART_MAIN);
 		lv_obj_align_to(Eye_base[i],Eye_Group[i],LV_ALIGN_CENTER,0,0);
 		lv_obj_set_style_bg_color(Eye_base[i],lv_color_black(),LV_PART_MAIN);
 		lv_obj_set_style_outline_width(Eye_base[i],5,LV_PART_MAIN);
@@ -240,7 +241,7 @@ void EyeFocalizeAnimCreat()
 	{
 		lv_anim_init(&EyeFocalize_Anim[i]);
         lv_anim_set_var(&EyeFocalize_Anim[i],Eye_base[i]);
-        lv_anim_set_values(&EyeFocalize_Anim[i],EYE_HOLE_SIZE_W,26);
+        lv_anim_set_values(&EyeFocalize_Anim[i],EYE_HOLE_SIZE,EYE_HOLE_MIN_SIZE);
         lv_anim_set_time(&EyeFocalize_Anim[i], 200);
 		lv_anim_set_delay(&EyeFocalize_Anim[i], 500);
         lv_anim_set_exec_cb(&EyeFocalize_Anim[i], ChangeEyeFocalize_CB);
