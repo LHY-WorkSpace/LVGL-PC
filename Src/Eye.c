@@ -24,7 +24,18 @@
 #define EYE_HOLE_SIZE_W		(35)
 
 //高光直径
-#define EYE_HIGHLIGHT_SIZE		(15)
+#define EYE_HIGHLIGHT_SIZE			(15)
+
+//高光移动角度倍数(越大移动越远)
+#define EYE_HIGHLIGHT_ANGLE_G		(10)
+
+//上部高光初始位置
+#define EYE_HIGHLIGHT_HIGH_X	( 15)
+#define EYE_HIGHLIGHT_HIGH_Y	(-15)
+
+//下部高光初始位置
+#define EYE_HIGHLIGHT_LOW_X		(-18)
+#define EYE_HIGHLIGHT_LOW_Y		( 18)
 
 
 #define ROTATEDIR_FORWARD     ( 1)//顺时针
@@ -36,7 +47,11 @@
 lv_obj_t *Eye_Group[4];
 lv_anim_t EyeBodyPath_Anim[4];
 lv_obj_t *Eye_base[4];//瞳孔
+lv_obj_t *Eye_in_high[4];
+lv_obj_t *Eye_in_low[4];
+
 lv_anim_t EyeFocalize_Anim[4];
+
 uint8_t RotateDir = ROTATEDIR_OPPOSITE;
 
 /*
@@ -109,6 +124,7 @@ static void Eye_BodyAnimPath_CB(void *var, int32_t v)
 static void ChangeEyeFocalize_CB(void *var, int32_t v)
 {
 	uint8_t i,j;
+    int16_t x1,y1;
 
     lv_obj_t *Eye_tmp = (lv_obj_t *)var;
 
@@ -119,6 +135,17 @@ static void ChangeEyeFocalize_CB(void *var, int32_t v)
 			lv_obj_set_size(Eye_tmp,v,v);
 			lv_obj_set_style_radius(Eye_tmp,v/2,LV_PART_MAIN);
 			lv_obj_align_to(Eye_tmp,Eye_Group[i],LV_ALIGN_CENTER,0,0);
+
+			//逆时针
+			x1=(EYE_HIGHLIGHT_HIGH_X)*cos(DEGTORAD((EYE_HOLE_SIZE_W-v)*EYE_HIGHLIGHT_ANGLE_G))+(EYE_HIGHLIGHT_HIGH_Y)*sin(DEGTORAD((EYE_HOLE_SIZE_W-v)*EYE_HIGHLIGHT_ANGLE_G));
+			y1=(EYE_HIGHLIGHT_HIGH_Y)*cos(DEGTORAD((EYE_HOLE_SIZE_W-v)*EYE_HIGHLIGHT_ANGLE_G))-(EYE_HIGHLIGHT_HIGH_X)*sin(DEGTORAD((EYE_HOLE_SIZE_W-v)*EYE_HIGHLIGHT_ANGLE_G)); 
+			lv_obj_align_to(Eye_in_high[i],Eye_Group[i],LV_ALIGN_CENTER,x1,y1);
+
+			//逆时针
+			x1=(EYE_HIGHLIGHT_LOW_X)*cos(DEGTORAD((EYE_HOLE_SIZE_W-v)*EYE_HIGHLIGHT_ANGLE_G))+(EYE_HIGHLIGHT_LOW_Y)*sin(DEGTORAD((EYE_HOLE_SIZE_W-v)*EYE_HIGHLIGHT_ANGLE_G));
+			y1=(EYE_HIGHLIGHT_LOW_Y)*cos(DEGTORAD((EYE_HOLE_SIZE_W-v)*EYE_HIGHLIGHT_ANGLE_G))-(EYE_HIGHLIGHT_LOW_X)*sin(DEGTORAD((EYE_HOLE_SIZE_W-v)*EYE_HIGHLIGHT_ANGLE_G));  
+			lv_obj_align_to(Eye_in_low[i],Eye_Group[i],LV_ALIGN_CENTER,x1,y1);
+
         }
     }
 }
@@ -143,8 +170,6 @@ void Eye_BodyCreate()
         lv_obj_align_to(Eye_Group[i],Face,LV_ALIGN_CENTER,Eye_Position[i][0],Eye_Position[i][1]);
 
 
-
-
 		//瞳孔
 		Eye_base[i] = lv_obj_create(Eye_Group[i]);
 		lv_obj_set_size(Eye_base[i],EYE_HOLE_SIZE_W,EYE_HOLE_SIZE_W);
@@ -156,26 +181,19 @@ void Eye_BodyCreate()
 		lv_obj_set_scrollbar_mode(Eye_base[i],LV_SCROLLBAR_MODE_OFF);
 
 		//眼部高光(上部)
-		Eye_in = lv_obj_create(Eye_Group[i]);
-		lv_obj_set_size(Eye_in,EYE_HIGHLIGHT_SIZE,EYE_HIGHLIGHT_SIZE);
-		lv_obj_set_style_radius(Eye_in,EYE_HIGHLIGHT_SIZE/2,LV_PART_MAIN);
-		lv_obj_align_to(Eye_in,Eye_Group[i],LV_ALIGN_TOP_RIGHT,6,-8);
-		lv_obj_set_scrollbar_mode(Eye_in,LV_SCROLLBAR_MODE_OFF);
+		Eye_in_high[i] = lv_obj_create(Eye_Group[i]);
+		lv_obj_set_size(Eye_in_high[i],EYE_HIGHLIGHT_SIZE,EYE_HIGHLIGHT_SIZE);
+		lv_obj_set_style_radius(Eye_in_high[i],EYE_HIGHLIGHT_SIZE/2,LV_PART_MAIN);
+		lv_obj_align_to(Eye_in_high[i],Eye_Group[i],LV_ALIGN_CENTER,EYE_HIGHLIGHT_HIGH_X,EYE_HIGHLIGHT_HIGH_Y);
+		lv_obj_set_scrollbar_mode(Eye_in_high[i],LV_SCROLLBAR_MODE_OFF);
 
 
 		//眼部高光(下部)
-		Eye_in = lv_obj_create(Eye_Group[i]);
-		lv_obj_set_size(Eye_in,EYE_HIGHLIGHT_SIZE/2,EYE_HIGHLIGHT_SIZE/2);
-		lv_obj_set_style_radius(Eye_in,EYE_HIGHLIGHT_SIZE/4,LV_PART_MAIN);
-		lv_obj_align_to(Eye_in,Eye_Group[i],LV_ALIGN_BOTTOM_MID,-15,10);
-		lv_obj_set_scrollbar_mode(Eye_in,LV_SCROLLBAR_MODE_OFF);
-
-
-
-
-
-
-
+		Eye_in_low[i] = lv_obj_create(Eye_Group[i]);
+		lv_obj_set_size(Eye_in_low[i],EYE_HIGHLIGHT_SIZE/2,EYE_HIGHLIGHT_SIZE/2);
+		lv_obj_set_style_radius(Eye_in_low[i],EYE_HIGHLIGHT_SIZE/4,LV_PART_MAIN);
+		lv_obj_align_to(Eye_in_low[i],Eye_Group[i],LV_ALIGN_CENTER,EYE_HIGHLIGHT_LOW_X,EYE_HIGHLIGHT_LOW_Y);
+		lv_obj_set_scrollbar_mode(Eye_in_low[i],LV_SCROLLBAR_MODE_OFF);
 
 
     }
@@ -309,10 +327,10 @@ void StartAnim( uint8_t Time)
 				break;
 			case 2:
 			/// Meter_Bg;
-				//ChangeEyeFocalize(1);
+				ChangeEyeFocalize(1);
 				// lv_scr_load_anim(Face,LV_SCR_LOAD_ANIM_FADE_OUT,1000,100,false);
-				MeterTest();
-				lv_scr_load_anim(Meter_Bg,LV_SCR_LOAD_ANIM_OVER_TOP,1000,100,false);
+				//MeterTest();
+				// lv_scr_load_anim(Meter_Bg,LV_SCR_LOAD_ANIM_OVER_TOP,1000,100,false);
 
 				break;	
 			case 3:
