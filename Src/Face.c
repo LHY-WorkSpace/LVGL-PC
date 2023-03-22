@@ -2,92 +2,110 @@
 
 
 
-lv_obj_t *BackGround;
 lv_obj_t *Face;
-lv_obj_t *Btn[3];
-
-
-void Face_Create()
+lv_obj_t *Head_In;
+lv_obj_t *Head_Out;
+static void Head_Create()
 {
-    BackGround = lv_obj_create(lv_scr_act());
-    lv_obj_set_size(BackGround,320,320);
-    lv_obj_set_style_bg_color(BackGround,lv_color_black(),LV_PART_MAIN);
-    lv_obj_set_style_radius(BackGround,0,LV_PART_MAIN);
-    lv_obj_set_style_border_side(BackGround,LV_BORDER_SIDE_FULL,LV_PART_MAIN);
-    lv_obj_set_style_border_color(BackGround,lv_color_white(),LV_PART_MAIN);
-    lv_obj_set_style_border_width(BackGround,0,LV_PART_MAIN);
-    lv_obj_set_scrollbar_mode(BackGround,LV_SCROLLBAR_MODE_OFF);
+
+
+    Head_Out = lv_obj_create(Desktop_BG);
+    lv_obj_set_size(Head_Out,480,480);
+    lv_obj_set_style_bg_color(Head_Out,lv_palette_darken(LV_PALETTE_GREY,2),LV_PART_MAIN);
+    lv_obj_set_style_radius(Head_Out,240,LV_PART_MAIN);
+
+    // lv_obj_set_style_border_opa(Head_In,LV_OPA_80,LV_PART_MAIN);
+    // lv_obj_set_style_border_side(Head_In,LV_BORDER_SIDE_FULL,LV_PART_MAIN);
+    // lv_obj_set_style_border_color(Head_In,lv_color_black(),LV_PART_MAIN);
+    lv_obj_set_style_border_width(Head_Out,0,LV_PART_MAIN);
+    lv_obj_set_scrollbar_mode(Head_Out,LV_SCROLLBAR_MODE_OFF);
+    lv_obj_center(Head_Out);
 
 
 
 
-    Face = lv_obj_create(BackGround);
+
+    Head_In = lv_obj_create(Head_Out);
+    lv_obj_set_size(Head_In,320,320);
+    lv_obj_set_style_bg_color(Head_In,lv_palette_darken(LV_PALETTE_GREY,3),LV_PART_MAIN);
+    lv_obj_set_style_radius(Head_In,160,LV_PART_MAIN);
+
+    // //lv_obj_set_style_outline_pad();
+    // lv_obj_set_style_outline_opa(Head_In,LV_OPA_80,LV_PART_MAIN);
+    // lv_obj_set_style_outline_width(Head_In,8,LV_PART_MAIN);
+    // lv_obj_set_style_outline_color(Head_In,lv_color_black(),LV_PART_MAIN);//眼球外轮廓
+
+    // //lv_obj_set_style_border_post();
+    lv_obj_set_style_border_opa(Head_In,LV_OPA_80,LV_PART_MAIN);
+    lv_obj_set_style_border_side(Head_In,LV_BORDER_SIDE_FULL,LV_PART_MAIN);
+    lv_obj_set_style_border_color(Head_In,lv_color_black(),LV_PART_MAIN);
+    lv_obj_set_style_border_width(Head_In,2,LV_PART_MAIN);
+    lv_obj_set_scrollbar_mode(Head_In,LV_SCROLLBAR_MODE_OFF);
+    lv_obj_center(Head_In);
+
+
+}
+
+
+
+
+!!!添加头部线条
+void LineForHead()
+{
+    lv_point_t Point={0,0};
+    lv_obj_t *Line = lv_line_create(Head_In); 
+    lv_point_t Point={0,0};
+
+    x1=(Eye_Position[Eye_Position[i][2]][0])*cos(DEGTORAD(v))+(Eye_Position[Eye_Position[i][2]][1])*sin(DEGTORAD(v));
+    y1=(Eye_Position[Eye_Position[i][2]][1])*cos(DEGTORAD(v))-(Eye_Position[Eye_Position[i][2]][0])*sin(DEGTORAD(v));  
+
+
+    lv_line_set_points(Line,&,1);
+
+
+}
+
+
+
+
+
+
+
+
+static void Face_Create()
+{
+    Face = lv_obj_create(Head_In);
     lv_obj_set_size(Face,240,240);
     lv_obj_set_style_bg_color(Face,lv_color_black(),LV_PART_MAIN);
     lv_obj_set_style_radius(Face,120,LV_PART_MAIN);
+
+    //lv_obj_set_style_outline_pad();
+    lv_obj_set_style_outline_opa(Face,LV_OPA_80,LV_PART_MAIN);
+    lv_obj_set_style_outline_width(Face,4,LV_PART_MAIN);
+    lv_obj_set_style_outline_color(Face,lv_color_black(),LV_PART_MAIN);//眼球外轮廓
+
+    //lv_obj_set_style_border_post();
+    lv_obj_set_style_border_opa(Face,LV_OPA_80,LV_PART_MAIN);
     lv_obj_set_style_border_side(Face,LV_BORDER_SIDE_FULL,LV_PART_MAIN);
-    lv_obj_set_style_border_color(Face,lv_palette_main(LV_PALETTE_GREY),LV_PART_MAIN);
-    lv_obj_set_style_border_width(Face,5,LV_PART_MAIN);
+    lv_obj_set_style_border_color(Face,lv_palette_darken(LV_PALETTE_GREY,3),LV_PART_MAIN);
+    lv_obj_set_style_border_width(Face,4,LV_PART_MAIN);
+
     lv_obj_set_scrollbar_mode(Face,LV_SCROLLBAR_MODE_OFF);
+
+    // lv_obj_align(Face,LV_ALIGN_TOP_RIGHT,0,0);
     lv_obj_center(Face);
 
-
-    // lv_scr_load(BackGround);
-    // lv_scr_load(Face);
-
-
 }
 
-
-void Btn_Handle(lv_event_t *e)
+void Face_Main()
 {
-	uint8_t i=0;
-    lv_obj_t *Btntmp = lv_event_get_target(e);
-    lv_event_code_t codetmp = lv_event_get_code(e);
-
-    if( lv_event_get_code(e) == LV_EVENT_CLICKED)
-    {
-        for ( i = 0; i < 3; i++)
-        {
-            if(Btntmp == Btn[i])
-            {
-            StartAnim( i+1);
-            printf(" %d \r\n",i+1);
-            }
-        }
-    }
-}
-
-
-
-void Btn_Create()
-{
-	uint8_t i=0;
-
-    for ( i = 0; i < 3; i++)
-    {
-        Btn[i] = lv_btn_create(lv_scr_act());
-        lv_obj_align(Btn[i],LV_ALIGN_BOTTOM_LEFT+i,0,0);
-        lv_obj_set_size(Btn[i],40,20);
-        lv_obj_set_style_bg_color(Btn[i],lv_color_make(74,117,37),LV_PART_MAIN);
-        lv_obj_add_event_cb(Btn[i],Btn_Handle,LV_EVENT_CLICKED,NULL);
-    }
-
-}
-
-
-
-
-
-
-void Main_UI()
-{
+    Head_Create();
     Face_Create();
     Eye_Main();
-    Btn_Create();
-    // MeterTest();
-
 }
+
+
+
 
 
 

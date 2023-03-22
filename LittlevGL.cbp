@@ -44,6 +44,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="LVGL_UI.h" />
+		<Unit filename="Src/Desktop.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Src/Desktop.h" />
 		<Unit filename="Src/Eye.c">
 			<Option compilerVar="CC" />
 		</Unit>
