@@ -25,9 +25,18 @@ void Face_Create()
     lv_obj_set_size(Face,240,240);
     lv_obj_set_style_bg_color(Face,lv_color_black(),LV_PART_MAIN);
     lv_obj_set_style_radius(Face,120,LV_PART_MAIN);
+
+    //lv_obj_set_style_outline_pad();
+    lv_obj_set_style_outline_opa(Face,LV_OPA_90,LV_PART_MAIN);
+    lv_obj_set_style_outline_width(Face,8,LV_PART_MAIN);
+    lv_obj_set_style_outline_color(Face,lv_palette_main(LV_PALETTE_GREY),LV_PART_MAIN);//ÑÛÇòÍâÂÖÀª
+
+    //lv_obj_set_style_border_post();
+    lv_obj_set_style_border_opa(Face,LV_OPA_80,LV_PART_MAIN);
     lv_obj_set_style_border_side(Face,LV_BORDER_SIDE_FULL,LV_PART_MAIN);
-    lv_obj_set_style_border_color(Face,lv_palette_main(LV_PALETTE_GREY),LV_PART_MAIN);
-    lv_obj_set_style_border_width(Face,5,LV_PART_MAIN);
+    lv_obj_set_style_border_color(Face,lv_palette_darken(LV_PALETTE_GREY,3),LV_PART_MAIN);
+    lv_obj_set_style_border_width(Face,15,LV_PART_MAIN);
+
     lv_obj_set_scrollbar_mode(Face,LV_SCROLLBAR_MODE_OFF);
     lv_obj_center(Face);
 
