@@ -169,6 +169,7 @@ void Eye_BodyCreate()
 		lv_obj_set_style_outline_color(Eye_Group[i],lv_color_make(84,104,58),LV_PART_MAIN);//瞳孔外轮廓颜色
 		lv_obj_set_scrollbar_mode(Eye_Group[i],LV_SCROLLBAR_MODE_OFF);//关闭滚动条
         lv_obj_align_to(Eye_Group[i],Face,LV_ALIGN_CENTER,Eye_Position[i][0],Eye_Position[i][1]);
+		lv_obj_clear_flag(Eye_Group[i],LV_OBJ_FLAG_CLICKABLE );//不可拖动
 
 
 		//瞳孔
@@ -180,6 +181,7 @@ void Eye_BodyCreate()
 		lv_obj_set_style_outline_width(Eye_base[i],5,LV_PART_MAIN);
 		lv_obj_set_style_outline_color(Eye_base[i],lv_color_black(),LV_PART_MAIN);
 		lv_obj_set_scrollbar_mode(Eye_base[i],LV_SCROLLBAR_MODE_OFF);
+		lv_obj_clear_flag(Eye_base[i],LV_OBJ_FLAG_CLICKABLE );
 
 		//眼部高光(上部)
 		Eye_in_high[i] = lv_obj_create(Eye_Group[i]);
@@ -187,7 +189,7 @@ void Eye_BodyCreate()
 		lv_obj_set_style_radius(Eye_in_high[i],EYE_HIGHLIGHT_SIZE/2,LV_PART_MAIN);
 		lv_obj_align_to(Eye_in_high[i],Eye_Group[i],LV_ALIGN_CENTER,EYE_HIGHLIGHT_HIGH_X,EYE_HIGHLIGHT_HIGH_Y);
 		lv_obj_set_scrollbar_mode(Eye_in_high[i],LV_SCROLLBAR_MODE_OFF);
-
+		lv_obj_clear_flag(Eye_in_high[i],LV_OBJ_FLAG_CLICKABLE );
 
 		//眼部高光(下部)
 		Eye_in_low[i] = lv_obj_create(Eye_Group[i]);
@@ -195,7 +197,7 @@ void Eye_BodyCreate()
 		lv_obj_set_style_radius(Eye_in_low[i],EYE_HIGHLIGHT_SIZE/4,LV_PART_MAIN);
 		lv_obj_align_to(Eye_in_low[i],Eye_Group[i],LV_ALIGN_CENTER,EYE_HIGHLIGHT_LOW_X,EYE_HIGHLIGHT_LOW_Y);
 		lv_obj_set_scrollbar_mode(Eye_in_low[i],LV_SCROLLBAR_MODE_OFF);
-
+		lv_obj_clear_flag(Eye_in_low[i],LV_OBJ_FLAG_CLICKABLE );
 
     }
 }
