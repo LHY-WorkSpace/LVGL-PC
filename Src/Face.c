@@ -10,7 +10,7 @@ lv_obj_t *Btn[3];
 void Face_Create()
 {
     BackGround = lv_obj_create(lv_scr_act());
-    lv_obj_set_size(BackGround,320,320);
+    lv_obj_set_size(BackGround,240,240);
     lv_obj_set_style_bg_color(BackGround,lv_color_black(),LV_PART_MAIN);
     lv_obj_set_style_radius(BackGround,0,LV_PART_MAIN);
     lv_obj_set_style_border_side(BackGround,LV_BORDER_SIDE_FULL,LV_PART_MAIN);
@@ -22,9 +22,9 @@ void Face_Create()
 
 
     Face = lv_obj_create(BackGround);
-    lv_obj_set_size(Face,240,240);
+    lv_obj_set_size(Face,240-8*2,240-8*2);
     lv_obj_set_style_bg_color(Face,lv_color_black(),LV_PART_MAIN);
-    lv_obj_set_style_radius(Face,120,LV_PART_MAIN);
+    lv_obj_set_style_radius(Face,(240-8*2)/2,LV_PART_MAIN);
 
     //lv_obj_set_style_outline_pad();
     lv_obj_set_style_outline_opa(Face,LV_OPA_90,LV_PART_MAIN);
