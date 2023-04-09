@@ -410,7 +410,8 @@ lv_fs_drv_t * lv_fs_get_drv(char letter)
 {
     lv_fs_drv_t ** drv;
 
-    _LV_LL_READ(&LV_GC_ROOT(_lv_fsdrv_ll), drv) {
+    _LV_LL_READ(&LV_GC_ROOT(_lv_fsdrv_ll), drv) 
+    {
         if((*drv)->letter == letter) {
             return *drv;
         }

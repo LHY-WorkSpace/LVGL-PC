@@ -24,7 +24,7 @@
  *====================*/
 
 /*Color depth: 1 (1 byte per pixel), 8 (RGB332), 16 (RGB565), 32 (ARGB8888)*/
-#define LV_COLOR_DEPTH 32
+#define LV_COLOR_DEPTH 16
 
 #define LV_COLOR_CHROMA_KEY lv_color_hex(0x00ff00)
 
@@ -36,7 +36,7 @@
 #define LV_USE_BUILTIN_MALLOC 1
 #if LV_USE_BUILTIN_MALLOC
     /*Size of the memory available for `lv_malloc()` in bytes (>= 2kB)*/
-    #define LV_MEM_SIZE (128U * 1024U)          /*[bytes]*/
+    #define LV_MEM_SIZE (4096U * 1024U)          /*[bytes]*/
 
     /*Set an address for the memory pool instead of allocating it as a normal array. Can be in external SRAM too.*/
     #define LV_MEM_ADR 0     /*0: unused*/
@@ -589,10 +589,10 @@
 #endif
 
 /*API for CreateFile, ReadFile, etc*/
-#define LV_USE_FS_WIN32 0
+#define LV_USE_FS_WIN32 1
 #if LV_USE_FS_WIN32
-    #define LV_FS_WIN32_LETTER '\0'     /*Set an upper cased letter on which the drive will accessible (e.g. 'A')*/
-    #define LV_FS_WIN32_PATH ""         /*Set the working directory. File/directory paths will be appended to it.*/
+    #define LV_FS_WIN32_LETTER 'X'     /*Set an upper cased letter on which the drive will accessible (e.g. 'A')*/
+    #define LV_FS_WIN32_PATH "E:\\WorkSpace\\Code\\LVGL-PC"         /*Set the working directory. File/directory paths will be appended to it.*/
     #define LV_FS_WIN32_CACHE_SIZE 0    /*>0 to cache this number of bytes in lv_fs_read()*/
 #endif
 
@@ -604,17 +604,17 @@
 #endif
 
 /*PNG decoder library*/
-#define LV_USE_PNG 0
+#define LV_USE_PNG 1
 
 /*BMP decoder library*/
-#define LV_USE_BMP 0
+#define LV_USE_BMP 1
 
 /* JPG + split JPG decoder library.
  * Split JPG is a custom format optimized for embedded systems. */
-#define LV_USE_SJPG 0
+#define LV_USE_SJPG 1
 
 /*GIF decoder library*/
-#define LV_USE_GIF 0
+#define LV_USE_GIF 1
 
 /*QR code library*/
 #define LV_USE_QRCODE 1
