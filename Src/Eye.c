@@ -15,7 +15,7 @@
 
 
 //Ðý×ª°ë¾¶
-#define R_LEN (47)
+#define R_LEN (42)
 
 //ÑÛÇòÖ±¾¶
 #define EYE_SIZE    		(60)
