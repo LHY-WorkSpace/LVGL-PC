@@ -74,7 +74,8 @@ void LineForHead()
 
 static void Face_Create()
 {
-    Face = lv_obj_create(Head_In);
+    // Face = lv_obj_create(Head_In);
+    Face = lv_obj_create(Img);
     lv_obj_set_size(Face,240,240);
     lv_obj_set_style_bg_color(Face,lv_color_black(),LV_PART_MAIN);
     lv_obj_set_style_radius(Face,120,LV_PART_MAIN);
@@ -93,7 +94,8 @@ static void Face_Create()
     lv_obj_set_scrollbar_mode(Face,LV_SCROLLBAR_MODE_OFF);
 
     // lv_obj_align(Face,LV_ALIGN_TOP_RIGHT,0,0);
-    lv_obj_center(Face);
+    // lv_obj_center(Face);
+    lv_obj_set_pos(Face,1083,225);
 
 }
 

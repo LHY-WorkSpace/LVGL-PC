@@ -24,7 +24,7 @@
 #include "../Src/Face.h"
 #include "../Src/Meter.h"
 #include "../Src/Desktop.h"
-
+#include "../Src/Image.h"
 
 void LVGL_Init(void);
 void LVGL_Task(void);

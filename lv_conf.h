@@ -24,7 +24,7 @@
  *====================*/
 
 /*Color depth: 1 (1 byte per pixel), 8 (RGB332), 16 (RGB565), 32 (ARGB8888)*/
-#define LV_COLOR_DEPTH 32
+#define LV_COLOR_DEPTH 16
 
 #define LV_COLOR_CHROMA_KEY lv_color_hex(0x00ff00)
 
@@ -36,7 +36,7 @@
 #define LV_USE_BUILTIN_MALLOC 1
 #if LV_USE_BUILTIN_MALLOC
     /*Size of the memory available for `lv_malloc()` in bytes (>= 2kB)*/
-    #define LV_MEM_SIZE (4096U * 1024U)          /*[bytes]*/
+    #define LV_MEM_SIZE (100U * 1024U * 1024U)          /*[bytes]*/
 
     /*Set an address for the memory pool instead of allocating it as a normal array. Can be in external SRAM too.*/
     #define LV_MEM_ADR 0     /*0: unused*/
@@ -282,7 +282,7 @@
  *With other image decoders (e.g. PNG or JPG) caching save the continuous open/decode of images.
  *However the opened images consume additional RAM.
  *0: to disable caching*/
-#define LV_IMG_CACHE_DEF_SIZE 0
+#define LV_IMG_CACHE_DEF_SIZE 1
 
 
 /*Number of stops allowed per gradient. Increase this to allow more stops.

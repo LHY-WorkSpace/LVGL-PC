@@ -247,7 +247,7 @@ void EyeFocalizeAnimCreat()
         lv_anim_set_time(&EyeFocalize_Anim[i], 200);
 		lv_anim_set_delay(&EyeFocalize_Anim[i], 500);
         lv_anim_set_exec_cb(&EyeFocalize_Anim[i], ChangeEyeFocalize_CB);
-        lv_anim_set_path_cb(&EyeFocalize_Anim[i],lv_anim_path_ease_in_out);
+        lv_anim_set_path_cb(&EyeFocalize_Anim[i],lv_anim_path_linear);
 		lv_anim_set_playback_time(&EyeFocalize_Anim[i],200);
 		lv_anim_set_playback_delay(&EyeFocalize_Anim[i],200);
         lv_anim_set_repeat_delay(&EyeFocalize_Anim[i],300);

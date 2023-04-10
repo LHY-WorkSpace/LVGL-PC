@@ -56,6 +56,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="Src/Face.h" />
+		<Unit filename="Src/Image.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Src/Image.h" />
 		<Unit filename="lv_conf.h" />
 		<Unit filename="lv_drivers/display/ILI9341.h" />
 		<Unit filename="lv_drivers/display/R61581.h" />

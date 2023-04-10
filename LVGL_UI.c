@@ -5,7 +5,7 @@
 
 void Main_UI()
 {
-	DesktopCreate();
+	//DesktopCreate();
     Face_Main();
     Btn_Create();
     // MeterTest();
@@ -32,9 +32,8 @@ void LVGL_Init()
 	lv_port_indev_init();
 #endif
 
-    //Main_UI();
-
-
+    Load_Image();
+    Main_UI();
 }
 
 
