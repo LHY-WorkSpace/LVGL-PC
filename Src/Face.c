@@ -49,18 +49,18 @@ static void Head_Create()
 
 
 
-!!!添加头部线条
+// !!!添加头部线条
 void LineForHead()
 {
-    lv_point_t Point={0,0};
-    lv_obj_t *Line = lv_line_create(Head_In); 
-    lv_point_t Point={0,0};
+    // lv_point_t Point={0,0};
+    // lv_obj_t *Line = lv_line_create(Head_In); 
+    // lv_point_t Point={0,0};
 
-    x1=(Eye_Position[Eye_Position[i][2]][0])*cos(DEGTORAD(v))+(Eye_Position[Eye_Position[i][2]][1])*sin(DEGTORAD(v));
-    y1=(Eye_Position[Eye_Position[i][2]][1])*cos(DEGTORAD(v))-(Eye_Position[Eye_Position[i][2]][0])*sin(DEGTORAD(v));  
+    // x1=(Eye_Position[Eye_Position[i][2]][0])*cos(DEGTORAD(v))+(Eye_Position[Eye_Position[i][2]][1])*sin(DEGTORAD(v));
+    // y1=(Eye_Position[Eye_Position[i][2]][1])*cos(DEGTORAD(v))-(Eye_Position[Eye_Position[i][2]][0])*sin(DEGTORAD(v));  
 
 
-    lv_line_set_points(Line,&,1);
+    // lv_line_set_points(Line,&,1);
 
 
 }

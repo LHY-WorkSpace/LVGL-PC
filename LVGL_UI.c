@@ -32,7 +32,7 @@ void LVGL_Init()
 	lv_port_indev_init();
 #endif
 
-    Main_UI();
+    //Main_UI();
 
 
 }

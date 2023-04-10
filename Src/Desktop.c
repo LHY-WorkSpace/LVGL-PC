@@ -121,3 +121,16 @@ void MoveFaceToTopRightAnim()
 
 
 
+
+
+void Load_Image()
+{
+
+
+
+
+    
+}
+
+
+
