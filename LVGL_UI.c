@@ -83,8 +83,8 @@ void LVGL_Init()
 	lv_port_disp_init();
 	lv_port_indev_init();
 #endif
-	img();
-    // Main_UI();
+	// img();
+    Main_UI();
 	// LVGL_Demo();
 
 }

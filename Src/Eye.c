@@ -170,7 +170,7 @@ void Eye_BodyCreate()
 		lv_obj_set_scrollbar_mode(Eye_Group[i],LV_SCROLLBAR_MODE_OFF);//关闭滚动条
         lv_obj_align_to(Eye_Group[i],Face,LV_ALIGN_CENTER,Eye_Position[i][0],Eye_Position[i][1]);
 		lv_obj_clear_flag(Eye_Group[i],LV_OBJ_FLAG_CLICKABLE );//不可拖动
-
+        lv_obj_set_style_opa(Eye_Group[i],LV_OPA_TRANSP,LV_PART_MAIN);
 
 		//瞳孔
 		Eye_base[i] = lv_obj_create(Eye_Group[i]);
@@ -309,9 +309,7 @@ void SetEyeBgColor(lv_palette_t color)
 void Eye_Main()
 {
 	Eye_BodyCreate();
-	Eye_BodyAnimPath();
 	EyeFocalizeAnimCreat();
-
 }
 
 

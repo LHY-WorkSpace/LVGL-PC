@@ -3,6 +3,18 @@
 
 
 
+
+
+extern lv_obj_t *Eye_Group[4];
+extern lv_obj_t *Eye_base[4];//瞳孔
+extern lv_obj_t *Eye_in_high[4];
+extern lv_obj_t *Eye_in_low[4];
+extern lv_anim_t EyeBodyPath_Anim[4];
+extern lv_anim_t EyeFocalize_Anim[4];
+extern lv_anim_t EyeBaseMove_Anim[4];
+
+
+
 //设置眼睛旋转方向和次数
 void RotateEye(uint8_t Dir ,uint8_t times);
 
