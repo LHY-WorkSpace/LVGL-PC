@@ -52,6 +52,27 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="Src/Face.h" />
+		<Unit filename="UI/fonts/ui_font_Segment20.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="UI/fonts/ui_font_pixe20.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="UI/fonts/ui_font_pixe208.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="UI/screens/ui_Bg.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="UI/ui.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="UI/ui.h" />
+		<Unit filename="UI/ui_events.h" />
+		<Unit filename="UI/ui_helpers.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="UI/ui_helpers.h" />
 		<Unit filename="lv_conf.h" />
 		<Unit filename="lv_drivers/display/ILI9341.h" />
 		<Unit filename="lv_drivers/display/R61581.h" />
