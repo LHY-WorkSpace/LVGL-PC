@@ -52,16 +52,22 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="Src/Face.h" />
-		<Unit filename="UI/fonts/ui_font_Segment20.c">
+		<Unit filename="UI/components/ui_comp_hook.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="UI/fonts/ui_font_pixe20.c">
+		<Unit filename="UI/images/ui_img_akf_bg_png.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="UI/fonts/ui_font_pixe208.c">
+		<Unit filename="UI/images/ui_img_akf_gg_png.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="UI/screens/ui_Bg.c">
+		<Unit filename="UI/images/ui_img_akf_png.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="UI/images/ui_img_bg_png.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="UI/screens/ui_Screen1.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="UI/ui.c">
