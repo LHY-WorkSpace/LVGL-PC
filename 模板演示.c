@@ -1435,7 +1435,55 @@ void StateBar()
 
 
 
+lv_obj_t *ui_ImageN[24];
+lv_anim_t Indec;
 
+
+static void Eye_BodyAnimPath_CB(void *var, int32_t v)
+{
+    uint8_t i;
+
+    lv_obj_t *Eye_tmp = (lv_obj_t *)var;
+
+    for ( i = 0; i < v; i++)
+    {
+        lv_obj_clear_flag(ui_ImageN[i], LV_OBJ_FLAG_HIDDEN);      /// Flags
+    }
+    printf("%d\r\n",v);
+}
+
+
+
+
+
+
+
+    for (i = 0; i < 24; i++)
+    {
+        ui_ImageN[i] = lv_img_create(ui_Screen1);
+        lv_img_set_src(ui_ImageN[i], &ui_img_akf_png);
+        lv_obj_set_width(ui_ImageN[i], LV_SIZE_CONTENT);   /// 27
+        lv_obj_set_height(ui_ImageN[i], LV_SIZE_CONTENT);    /// 92
+        lv_obj_set_x(ui_ImageN[i], -15);
+        lv_obj_set_y(ui_ImageN[i], -63);
+        lv_obj_set_align(ui_ImageN[i], LV_ALIGN_CENTER);
+        lv_obj_add_flag(ui_ImageN[i], LV_OBJ_FLAG_ADV_HITTEST);     /// Flags
+        lv_obj_clear_flag(ui_ImageN[i], LV_OBJ_FLAG_SCROLLABLE);      /// Flags
+        lv_img_set_pivot(ui_ImageN[i], 27, 109);
+        lv_img_set_angle(ui_ImageN[i], (i+1)*150);
+        lv_obj_add_flag(ui_ImageN[i], LV_OBJ_FLAG_HIDDEN);     /// Flags
+    }
+
+    lv_anim_init(&Indec);
+    lv_anim_set_var(&Indec,ui_ImageN);
+    lv_anim_set_values(&Indec,0,24);
+    lv_anim_set_time(&Indec, 24000);
+    lv_anim_set_delay(&Indec,100);
+    lv_anim_set_exec_cb(&Indec, Eye_BodyAnimPath_CB);
+    lv_anim_set_path_cb(&Indec,lv_anim_path_linear);
+    lv_anim_set_repeat_delay(&Indec,1000);
+    lv_anim_set_repeat_count(&Indec, LV_ANIM_REPEAT_INFINITE);
+    lv_anim_start(&Indec);
 
 
 

@@ -60,6 +60,22 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="Src/Image.h" />
+		<Unit filename="UI/components/ui_comp_hook.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="UI/images/ui_img_akf_png.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="UI/screens/ui_Screen1.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="UI/ui.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="UI/ui.h" />
+		<Unit filename="UI/ui_helpers.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="lv_conf.h" />
 		<Unit filename="lv_drivers/display/ILI9341.h" />
 		<Unit filename="lv_drivers/display/R61581.h" />
