@@ -1,8 +1,13 @@
-SET(SOURCES screens/ui_Screen1.c
-    ui.c
-    components/ui_comp_hook.c
-    ui_helpers.c
-    images/ui_img_bgg_png.c
-    images/ui_img_akf_png.c)
+file(GLOB_RECURSE SOURCES "./*.c"
+                          "screens/*.c" 
+                          "fonts/*.c"
+                          "images/*.c"
+                            )
 
-add_library(ui ${SOURCES})
+idf_component_register(SRCS	${SOURCES}
+                   INCLUDE_DIRS "./"
+                    REQUIRES    
+                            lvgl
+                            lvgl_esp32_drivers
+                            Main_UI
+                            )
