@@ -1,8 +1,20 @@
-SET(SOURCES screens/ui_Screen1.c
+SET(SOURCES screens/ui_BoostModeA.c
+    screens/ui_BoostModeB.c
     ui.c
     components/ui_comp_hook.c
     ui_helpers.c
     images/ui_img_akf_gg_png.c
-    images/ui_img_akf_png.c)
+    images/ui_img_centerindec_png.c
+    images/ui_img_secondindec_png.c
+    images/ui_img_akf_png.c
+    images/ui_img_smallindecotr_1_png.c
+    images/ui_img_akf_line_png.c
+    images/ui_img_secondbg_png.c
+    images/ui_img_mainindector_png.c
+    images/ui_img_triangle_png.c
+    images/ui_img_smallpoint_white_png.c
+    images/ui_img_smallpoint_png.c
+    fonts/ui_font_Seg40.c
+    fonts/ui_font_Seg48.c)
 
 add_library(ui ${SOURCES})
