@@ -15,7 +15,6 @@ static void Boost2_Anim_CB(void *var, int32_t v)
 
     if(TarObj == ui_MainIndeotor)
     {
-
         if(v == 0)
         {
 
@@ -23,66 +22,31 @@ static void Boost2_Anim_CB(void *var, int32_t v)
         else if(v <= 5)
         {
             lv_obj_add_flag(ui_MainIndeotor[v-1], LV_OBJ_FLAG_HIDDEN);
-            lv_label_set_text_fmt(ui_SecConut,"%ld",v);
         }
-
-
+        lv_label_set_text_fmt(ui_SecConut,"%ld",5-v);
+        printf("%d\r\n",v);
     }
     else if(TarObj == ui_SmallPointWhite)
     {
-
         if(v == 0)
         {
             if(Flag)
             {
                 for (i = 0; i < 12; i++)
                 {
-                 lv_obj_add_flag(ui_SmallPointWhite[i], LV_OBJ_FLAG_HIDDEN);     /// Flags
+                    lv_obj_add_flag(ui_SmallPointWhite[i], LV_OBJ_FLAG_HIDDEN);     /// Flags
                 }
             }
         }
         else if(v <= 12)
         {
             lv_obj_clear_flag(ui_SmallPointWhite[v-1], LV_OBJ_FLAG_HIDDEN);
-            if(v == 12)
-            { 
-                Flag =1;
-            }
         }
-        else 
+        else if(v == 13)
         {
-
+            Flag = 1;
         }
     }
-
-    // if(v == 0 )
-    // {
-    //     if(Flag == 1)
-    //     {
-    //         lv_disp_load_scr(ui_BoostModeA);
-    //     }
-
-    // }
-    // else if(v <= 16  )
-    // {
-    //     lv_obj_add_flag(ui_MainIndecA[v-1], LV_OBJ_FLAG_HIDDEN);
-
-    //     if(v > 4 )
-    //     {
-    //         lv_obj_clear_flag(ui_ChargeIndecB[(v-4)/4], LV_OBJ_FLAG_HIDDEN);
-    //         lv_obj_clear_flag(ui_ChargeIndecA[(v-4)/4], LV_OBJ_FLAG_HIDDEN);
-    //     }
-    // }
-    // else
-    // {
-    //     Flag =1;
-    //     lv_obj_add_flag(ui_MainIndecB[v-17], LV_OBJ_FLAG_HIDDEN);
-    // }
-
-
-
-
-
 }
 
 
@@ -104,11 +68,13 @@ void ui_BoostModeB_screen_init(void)
         lv_obj_set_height(ui_MainIndeotor[i], LV_SIZE_CONTENT);    /// 83
         lv_obj_set_x(ui_MainIndeotor[i], 47);
         lv_obj_set_y(ui_MainIndeotor[i], -58);
+        lv_obj_clear_flag(ui_MainIndeotor[i], LV_OBJ_FLAG_HIDDEN);      /// Flags
         lv_obj_set_align(ui_MainIndeotor[i], LV_ALIGN_CENTER);
         lv_obj_add_flag(ui_MainIndeotor[i], LV_OBJ_FLAG_ADV_HITTEST);     /// Flags
         lv_obj_clear_flag(ui_MainIndeotor[i], LV_OBJ_FLAG_SCROLLABLE);      /// Flags
         lv_img_set_pivot(ui_MainIndeotor[i], -2, 98);
         lv_img_set_angle(ui_MainIndeotor[i], 2880-i*720);
+
     }
 
     for (i = 0; i < 12; i++)
@@ -160,24 +126,31 @@ void ui_BoostModeB_screen_init(void)
     lv_obj_set_style_text_opa(ui_SecConut, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_font(ui_SecConut, &ui_font_Seg48, LV_PART_MAIN | LV_STATE_DEFAULT);
 
+}
+
+void Boost2_AnimBegin()
+{
     lv_anim_init(&Boost2_Anim);
     // lv_anim_set_var(&Boost2_Anim,ui_MainIndeotor);
     // lv_anim_set_values(&Boost2_Anim,0,5);
     // lv_anim_set_time(&Boost2_Anim, 5000);
     lv_anim_set_exec_cb(&Boost2_Anim, Boost2_Anim_CB);
     lv_anim_set_path_cb(&Boost2_Anim,lv_anim_path_linear);
-    lv_anim_set_repeat_delay(&Boost2_Anim,1000);
+    // lv_anim_set_repeat_delay(&Boost2_Anim,1000);
     lv_anim_set_repeat_count(&Boost2_Anim, LV_ANIM_REPEAT_INFINITE);
     // lv_anim_start(&Boost2_Anim);
 
-    lv_anim_set_values(&Boost2_Anim,0,5);
+    lv_anim_set_values(&Boost2_Anim,0,6);
     lv_anim_set_time(&Boost2_Anim, 5000);
     lv_anim_set_var(&Boost2_Anim, ui_MainIndeotor);
     lv_anim_start(&Boost2_Anim);
 
-
-    lv_anim_set_values(&Boost2_Anim,0,12);
-    lv_anim_set_time(&Boost2_Anim, 500);
+    lv_anim_set_values(&Boost2_Anim,0,13);
+    lv_anim_set_time(&Boost2_Anim, 1000);
     lv_anim_set_var(&Boost2_Anim, ui_SmallPointWhite);
     lv_anim_start(&Boost2_Anim);
+
 }
+
+
+

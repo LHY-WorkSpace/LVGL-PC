@@ -91,34 +91,31 @@ static void Eye_BodyAnimPath_CB(void *var, int32_t v)
 
     for ( i = 0; i < 4; i++)
     {
-        if(Eye_tmp == Eye_Group[i])
-        {
-			if( RotateDir == 1)
-			{
-				//顺时针
-				x1=(Eye_Position[Eye_Position[i][2]][0])*cos(DEGTORAD(v))-(Eye_Position[Eye_Position[i][2]][1])*sin(DEGTORAD(v));
-				y1=(Eye_Position[Eye_Position[i][2]][1])*cos(DEGTORAD(v))+(Eye_Position[Eye_Position[i][2]][0])*sin(DEGTORAD(v));  
-			}
-			else
-			{
-				//逆时针
-				x1=(Eye_Position[Eye_Position[i][2]][0])*cos(DEGTORAD(v))+(Eye_Position[Eye_Position[i][2]][1])*sin(DEGTORAD(v));
-				y1=(Eye_Position[Eye_Position[i][2]][1])*cos(DEGTORAD(v))-(Eye_Position[Eye_Position[i][2]][0])*sin(DEGTORAD(v));  
-			}
+		if( RotateDir == 1)
+		{
+			//顺时针
+			x1=(Eye_Position[Eye_Position[i][2]][0])*cos(DEGTORAD(v))-(Eye_Position[Eye_Position[i][2]][1])*sin(DEGTORAD(v));
+			y1=(Eye_Position[Eye_Position[i][2]][1])*cos(DEGTORAD(v))+(Eye_Position[Eye_Position[i][2]][0])*sin(DEGTORAD(v));  
+		}
+		else
+		{
+			//逆时针
+			x1=(Eye_Position[Eye_Position[i][2]][0])*cos(DEGTORAD(v))+(Eye_Position[Eye_Position[i][2]][1])*sin(DEGTORAD(v));
+			y1=(Eye_Position[Eye_Position[i][2]][1])*cos(DEGTORAD(v))-(Eye_Position[Eye_Position[i][2]][0])*sin(DEGTORAD(v));  
+		}
 
-			lv_obj_align_to(Eye_Group[i],Face,LV_ALIGN_CENTER,x1,y1);
+		lv_obj_align_to(Eye_Group[i],Face,LV_ALIGN_CENTER,x1,y1);
 
-			if( v == 90)
-			{
-				Eye_Position[i][2] = (Eye_Position[i][2] +RotateDir)%4;
+		if( v == 90)
+		{
+			Eye_Position[i][2] = (Eye_Position[i][2] +RotateDir)%4;
 
-				lv_anim_set_delay(&EyeBodyPath_Anim[i], 0);
-				//旋转结束后调整眼部焦距
-				lv_anim_set_repeat_count(&EyeFocalize_Anim[i], 2);
-				lv_anim_start(&EyeFocalize_Anim[i]);
+			lv_anim_set_delay(&EyeBodyPath_Anim[i], 0);
+			//旋转结束后调整眼部焦距
+			lv_anim_set_repeat_count(&EyeFocalize_Anim[i], 2);
+			lv_anim_start(&EyeFocalize_Anim[i]);
 
-			}
-        }
+		}
     }
 }
 

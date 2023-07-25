@@ -34,6 +34,9 @@ extern lv_obj_t * ui_SmallPointWhite[12];
 extern lv_obj_t * ui_SmallPoint[12];
 extern lv_obj_t * ui_SecConut;
 extern lv_obj_t * ui____initial_actions0;
+void Boost2_AnimBegin(void);
+
+
 
 LV_IMG_DECLARE(ui_img_akf_gg_png);    // assets\AKF_gg.png
 LV_IMG_DECLARE(ui_img_centerindec_png);    // assets\CenterIndec.png
