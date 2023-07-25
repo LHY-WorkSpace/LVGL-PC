@@ -24,7 +24,6 @@ static void Boost2_Anim_CB(void *var, int32_t v)
             lv_obj_add_flag(ui_MainIndeotor[v-1], LV_OBJ_FLAG_HIDDEN);
         }
         lv_label_set_text_fmt(ui_SecConut,"%ld",5-v);
-        printf("%d\r\n",v);
     }
     else if(TarObj == ui_SmallPointWhite)
     {
@@ -131,14 +130,9 @@ void ui_BoostModeB_screen_init(void)
 void Boost2_AnimBegin()
 {
     lv_anim_init(&Boost2_Anim);
-    // lv_anim_set_var(&Boost2_Anim,ui_MainIndeotor);
-    // lv_anim_set_values(&Boost2_Anim,0,5);
-    // lv_anim_set_time(&Boost2_Anim, 5000);
     lv_anim_set_exec_cb(&Boost2_Anim, Boost2_Anim_CB);
     lv_anim_set_path_cb(&Boost2_Anim,lv_anim_path_linear);
-    // lv_anim_set_repeat_delay(&Boost2_Anim,1000);
     lv_anim_set_repeat_count(&Boost2_Anim, LV_ANIM_REPEAT_INFINITE);
-    // lv_anim_start(&Boost2_Anim);
 
     lv_anim_set_values(&Boost2_Anim,0,6);
     lv_anim_set_time(&Boost2_Anim, 5000);

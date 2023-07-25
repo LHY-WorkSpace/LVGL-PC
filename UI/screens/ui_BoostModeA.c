@@ -61,11 +61,11 @@ void ui_BoostModeA_screen_init(void)
         lv_obj_set_width(ui_ChargeIndecB[i], LV_SIZE_CONTENT);   /// 12
         lv_obj_set_height(ui_ChargeIndecB[i], LV_SIZE_CONTENT);    /// 15
         lv_obj_set_x(ui_ChargeIndecB[i], -4);
-        lv_obj_set_y(ui_ChargeIndecB[i], 7);
+        lv_obj_set_y(ui_ChargeIndecB[i], 6);
         lv_obj_set_align(ui_ChargeIndecB[i], LV_ALIGN_CENTER);
         lv_obj_add_flag(ui_ChargeIndecB[i], LV_OBJ_FLAG_ADV_HITTEST);     /// Flags
         lv_obj_clear_flag(ui_ChargeIndecB[i], LV_OBJ_FLAG_SCROLLABLE);      /// Flags
-        lv_img_set_pivot(ui_ChargeIndecB[i], 8, 2);
+        lv_img_set_pivot(ui_ChargeIndecB[i], 8, 1);
         lv_img_set_angle(ui_ChargeIndecB[i], i*400);
         lv_obj_add_flag(ui_ChargeIndecB[i], LV_OBJ_FLAG_HIDDEN);     /// Flags
     }
@@ -77,12 +77,12 @@ void ui_BoostModeA_screen_init(void)
         lv_img_set_src(ui_ChargeIndecA[i], &ui_img_secondindec_png);
         lv_obj_set_width(ui_ChargeIndecA[i], LV_SIZE_CONTENT);   /// 237
         lv_obj_set_height(ui_ChargeIndecA[i], LV_SIZE_CONTENT);    /// 237
-        lv_obj_set_x(ui_ChargeIndecA[i], 63);
+        lv_obj_set_x(ui_ChargeIndecA[i], 65);
         lv_obj_set_y(ui_ChargeIndecA[i], 2);
         lv_obj_set_align(ui_ChargeIndecA[i], LV_ALIGN_CENTER);
         lv_obj_add_flag(ui_ChargeIndecA[i], LV_OBJ_FLAG_ADV_HITTEST);     /// Flags
         lv_obj_clear_flag(ui_ChargeIndecA[i], LV_OBJ_FLAG_SCROLLABLE);      /// Flags
-        lv_img_set_pivot(ui_ChargeIndecA[i], -15, 8);
+        lv_img_set_pivot(ui_ChargeIndecA[i], -10, 14);
         lv_img_set_angle(ui_ChargeIndecA[i], -95*i);
         lv_obj_add_flag(ui_ChargeIndecA[i], LV_OBJ_FLAG_HIDDEN);     /// Flags
     }
@@ -166,7 +166,7 @@ void ui_BoostModeA_screen_init(void)
     lv_anim_init(&Boost1_Anim);
     lv_anim_set_var(&Boost1_Anim,ui_MainIndecA);
     lv_anim_set_values(&Boost1_Anim,0,21);
-    lv_anim_set_time(&Boost1_Anim, 5000);
+    lv_anim_set_time(&Boost1_Anim, 10000);
     // lv_anim_set_delay(&Boost1_Anim, 1000);
     lv_anim_set_exec_cb(&Boost1_Anim, Boost1_Anim_CB);
     lv_anim_set_path_cb(&Boost1_Anim,lv_anim_path_linear);
