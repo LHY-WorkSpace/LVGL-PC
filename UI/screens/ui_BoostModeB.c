@@ -5,50 +5,60 @@
 
 #include "../ui.h"
 
-lv_anim_t Boost2_Anim;
+lv_anim_t Boost2_Anim_Main;
+lv_anim_t Boost2_Anim_Point;
 
-static void Boost2_Anim_CB(void *var, int32_t v)
+
+static uint8_t Switch = 0;
+static void Boost2_Anim_MainCB(void *var, int32_t v)
 {
-    static uint8_t Flag = 0;
-    uint8_t i;
-    lv_obj_t *TarObj = (lv_obj_t *)var;
-
-    if(TarObj == ui_MainIndeotor)
+    if(v <= 5)
     {
-        if(v == 0)
-        {
-
-        }
-        else if(v <= 5)
+        if(v != 0)
         {
             lv_obj_add_flag(ui_MainIndeotor[v-1], LV_OBJ_FLAG_HIDDEN);
+
         }
         lv_label_set_text_fmt(ui_SecConut,"%ld",5-v);
     }
-    else if(TarObj == ui_SmallPointWhite)
+    else
     {
-        if(v == 0)
-        {
-            if(Flag)
-            {
-                for (i = 0; i < 12; i++)
-                {
-                    lv_obj_add_flag(ui_SmallPointWhite[i], LV_OBJ_FLAG_HIDDEN);     /// Flags
-                }
-            }
-        }
-        else if(v <= 12)
-        {
-            lv_obj_clear_flag(ui_SmallPointWhite[v-1], LV_OBJ_FLAG_HIDDEN);
-        }
-        else if(v == 13)
-        {
-            Flag = 1;
-        }
+        Switch = 1;
+        lv_anim_del(Boost2_Anim_Main.var,Boost2_Anim_Main.exec_cb);        
     }
 }
 
+static void Boost2_Anim_PointCB(void *var, int32_t v)
+{   
+     static uint8_t ComplateFlag = 0;
+     uint8_t i;
 
+    if(v == 0)
+    {
+        if(ComplateFlag)
+        {
+            for (i = 0; i < 12; i++)
+            {
+                lv_obj_add_flag(ui_SmallPointWhite[i], LV_OBJ_FLAG_HIDDEN);     /// Flags
+            }
+        }
+        if(Switch == 1)
+        {
+            Boost2_Anim_Del();
+        }
+
+
+    }
+    else if(v <= 12)
+    {
+        lv_obj_clear_flag(ui_SmallPointWhite[v-1], LV_OBJ_FLAG_HIDDEN);
+    }
+    else if(v == 13)
+    {
+        ComplateFlag = 1;
+    }
+
+}
 
 
 void ui_BoostModeB_screen_init(void)
@@ -73,7 +83,6 @@ void ui_BoostModeB_screen_init(void)
         lv_obj_clear_flag(ui_MainIndeotor[i], LV_OBJ_FLAG_SCROLLABLE);      /// Flags
         lv_img_set_pivot(ui_MainIndeotor[i], -2, 98);
         lv_img_set_angle(ui_MainIndeotor[i], 2880-i*720);
-
     }
 
     for (i = 0; i < 12; i++)
@@ -120,31 +129,40 @@ void ui_BoostModeB_screen_init(void)
     lv_obj_set_width(ui_SecConut, LV_SIZE_CONTENT);   /// 1
     lv_obj_set_height(ui_SecConut, LV_SIZE_CONTENT);    /// 1
     lv_obj_set_align(ui_SecConut, LV_ALIGN_CENTER);
-    lv_label_set_text_fmt(ui_SecConut,"%d",6);
+    lv_label_set_text_fmt(ui_SecConut,"%d",5);
     lv_obj_set_style_text_color(ui_SecConut, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_SecConut, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_font(ui_SecConut, &ui_font_Seg48, LV_PART_MAIN | LV_STATE_DEFAULT);
 
+
+    lv_anim_init(&Boost2_Anim_Point);
+    lv_anim_set_exec_cb(&Boost2_Anim_Point, Boost2_Anim_PointCB);
+    lv_anim_set_path_cb(&Boost2_Anim_Point,lv_anim_path_linear);
+    lv_anim_set_repeat_count(&Boost2_Anim_Point, LV_ANIM_REPEAT_INFINITE);
+    lv_anim_set_values(&Boost2_Anim_Point,0,13);
+    lv_anim_set_time(&Boost2_Anim_Point, 850);
+    lv_anim_set_var(&Boost2_Anim_Point, ui_SmallPointWhite);
+
+    lv_anim_init(&Boost2_Anim_Main);
+    lv_anim_set_exec_cb(&Boost2_Anim_Main, Boost2_Anim_MainCB);
+    lv_anim_set_path_cb(&Boost2_Anim_Main,lv_anim_path_linear);
+    lv_anim_set_repeat_count(&Boost2_Anim_Main, LV_ANIM_REPEAT_INFINITE);
+    lv_anim_set_values(&Boost2_Anim_Main,0,6);
+    lv_anim_set_time(&Boost2_Anim_Main, 5000);
+    lv_anim_set_var(&Boost2_Anim_Main, ui_MainIndeotor);
 }
 
 void Boost2_AnimBegin()
 {
-    lv_anim_init(&Boost2_Anim);
-    lv_anim_set_exec_cb(&Boost2_Anim, Boost2_Anim_CB);
-    lv_anim_set_path_cb(&Boost2_Anim,lv_anim_path_linear);
-    lv_anim_set_repeat_count(&Boost2_Anim, LV_ANIM_REPEAT_INFINITE);
-
-    lv_anim_set_values(&Boost2_Anim,0,6);
-    lv_anim_set_time(&Boost2_Anim, 5000);
-    lv_anim_set_var(&Boost2_Anim, ui_MainIndeotor);
-    lv_anim_start(&Boost2_Anim);
-
-    lv_anim_set_values(&Boost2_Anim,0,13);
-    lv_anim_set_time(&Boost2_Anim, 1000);
-    lv_anim_set_var(&Boost2_Anim, ui_SmallPointWhite);
-    lv_anim_start(&Boost2_Anim);
+    lv_anim_start(&Boost2_Anim_Main);
+    lv_anim_start(&Boost2_Anim_Point);
 
 }
 
 
+void Boost2_Anim_Del()
+{
+    lv_anim_del(Boost2_Anim_Point.var,Boost2_Anim_Point.exec_cb);
+    // lv_anim_del(Boost2_Anim_Main.var,Boost2_Anim_Main.exec_cb);
+}
 

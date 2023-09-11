@@ -10,30 +10,41 @@ lv_anim_t Boost1_Anim;
 
 static void Boost1_Anim_CB(void *var, int32_t v)
 {
-    static uint8_t Flag = 0;
-    
+    static uint8_t ComplateFlag = 0;
     if(v == 0 )
     {
-        if(Flag == 1)
+        if(ComplateFlag == 1)
         {
+            //倒计时完毕
             lv_disp_load_scr(ui_BoostModeB);
             Boost2_AnimBegin();
+            Boost1_Anim_Del();           
         }
 
     }
     else if(v <= 16  )
     {
         lv_obj_add_flag(ui_MainIndecA[v-1], LV_OBJ_FLAG_HIDDEN);
-
         if(v > 4 )
         {
             lv_obj_clear_flag(ui_ChargeIndecB[(v-4)/4], LV_OBJ_FLAG_HIDDEN);
             lv_obj_clear_flag(ui_ChargeIndecA[(v-4)/4], LV_OBJ_FLAG_HIDDEN);
         }
+
+        if(v == 16)
+        {
+            // if()//按键触发
+            // {
+                // lv_disp_load_scr(ui_BoostModeB);
+                // Boost2_AnimBegin();
+                // Boost1_Anim_Del();
+            // }
+        }
+
     }
     else
     {
-        Flag =1;
+        ComplateFlag = 1;
         lv_obj_add_flag(ui_MainIndecB[v-17], LV_OBJ_FLAG_HIDDEN);
     }
 
@@ -166,13 +177,23 @@ void ui_BoostModeA_screen_init(void)
     lv_anim_init(&Boost1_Anim);
     lv_anim_set_var(&Boost1_Anim,ui_MainIndecA);
     lv_anim_set_values(&Boost1_Anim,0,21);
-    lv_anim_set_time(&Boost1_Anim, 10000);
-    // lv_anim_set_delay(&Boost1_Anim, 1000);
+    lv_anim_set_time(&Boost1_Anim, 22000);
     lv_anim_set_exec_cb(&Boost1_Anim, Boost1_Anim_CB);
     lv_anim_set_path_cb(&Boost1_Anim,lv_anim_path_linear);
-    // lv_anim_set_repeat_delay(&Boost1_Anim,1000);
     lv_anim_set_repeat_count(&Boost1_Anim, LV_ANIM_REPEAT_INFINITE);
     lv_anim_start(&Boost1_Anim);
 
 
+}
+
+
+void Boost1_Anim_Begin()
+{
+    lv_anim_start(&Boost1_Anim);
+}
+
+
+void Boost1_Anim_Del()
+{
+    lv_anim_del(Boost1_Anim.var,Boost1_Anim.exec_cb);
 }
