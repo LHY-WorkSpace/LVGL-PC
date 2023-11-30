@@ -85,7 +85,7 @@ void LVGL_Init()
 #endif
 	// img();
     Main_UI();
-	ui_init();
+	// ui_init();
 	// LVGL_Demo();
 
 }

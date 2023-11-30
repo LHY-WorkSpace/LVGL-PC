@@ -59,9 +59,6 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLi
     /*Run the demo*/
     // lv_demo_widgets();
     //lv_demo_benchmark();
-    //Btn();
-    // Bar();
-    // Bar_Static();
     LVGL_Init();
     
     while(!lv_win32_quit_signal) {
