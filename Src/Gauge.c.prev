@@ -1,0 +1,1016 @@
+/*
+ * Cyber Formula / Asurada style 240x240 HUD for LVGL-PC.
+ *
+ * This is deliberately a single full-screen LVGL canvas with a small number
+ * of labels on top.  The drawing code uses only LVGL and a plain RGB565
+ * framebuffer, so it can be copied to the ESP32-S3 project later.
+ *
+ * Demo sequence:
+ *   BOOT -> MAIN -> BOOST -> MAIN -> SPIRAL -> MAIN -> BOOST ...
+ *
+ * Tune the _MS values below to make the demo faster or slower.
+ */
+
+#include "Gauge.h"
+#include "lvgl/lvgl.h"
+
+#include <math.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
+
+#if defined(ESP_PLATFORM)
+#include "esp_heap_caps.h"
+#define GAUGE_MALLOC(sz) heap_caps_malloc((sz), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT)
+#else
+#define GAUGE_MALLOC(sz) malloc(sz)
+#endif
+
+LV_FONT_DECLARE(ui_font_Seg40)
+LV_FONT_DECLARE(ui_font_Seg48)
+
+#define GAUGE_W 240
+#define GAUGE_SCR_H 240
+#define GAUGE_CX 120
+#define GAUGE_CY 120
+#define GAUGE_PI 3.14159265358979323846f
+
+/* Demo timing.  Set BOOST_MS to 20000 for the full 20 second countdown. */
+#define BOOT_MS            6200u
+#define MAIN_MS            8500u
+#define BOOST_MS          20000u
+#define SPIRAL_MS          7000u
+#define BOOST_DISPLAY_SEC  20.0f
+
+typedef enum {
+    MODE_BOOT = 0,
+    MODE_MAIN,
+    MODE_BOOST,
+    MODE_SPIRAL
+} gauge_mode_t;
+
+static lv_obj_t *s_canvas;
+static lv_color_t *s_fb;
+static lv_color_t *s_main_bg;
+static uint16_t *s_angle_map;
+
+static lv_obj_t *s_main_layer;
+static lv_obj_t *s_boot_layer;
+static lv_obj_t *s_boost_layer;
+static lv_obj_t *s_spiral_layer;
+
+static lv_obj_t *s_outer_label[13];
+static lv_obj_t *s_speed_label;
+static lv_obj_t *s_oil_label;
+static lv_obj_t *s_stack_label;
+static lv_obj_t *s_acr_label[3];
+static lv_obj_t *s_gear_label;
+
+static lv_obj_t *s_boot_title;
+static lv_obj_t *s_boot_sub;
+static lv_obj_t *s_boot_left[5];
+static lv_obj_t *s_boot_right[5];
+static lv_obj_t *s_boot_driver;
+static lv_obj_t *s_boot_master;
+
+static lv_obj_t *s_boost_num;
+static lv_obj_t *s_boost_sec;
+
+static lv_obj_t *s_spiral_num;
+static lv_obj_t *s_stop_label;
+
+static gauge_mode_t s_mode;
+static gauge_mode_t s_main_next = MODE_BOOST;
+static uint32_t s_mode_start;
+
+static int16_t s_sin[720];
+static int16_t s_cos[720];
+
+static lv_color_t c_black;
+static lv_color_t c_white;
+static lv_color_t c_blue;
+static lv_color_t c_orange;
+static lv_color_t c_red;
+static lv_color_t c_yellow;
+static lv_color_t c_green;
+static lv_color_t c_magenta;
+static lv_color_t c_gray;
+static lv_color_t c_dark;
+static lv_color_t c_grid;
+
+/* ------------------------------------------------------------------------- */
+/* Small raster helpers                                                       */
+/* ------------------------------------------------------------------------- */
+
+static inline void put_px(int x, int y, lv_color_t c)
+{
+    if((unsigned)x < GAUGE_W && (unsigned)y < GAUGE_SCR_H) {
+        s_fb[y * GAUGE_W + x] = c;
+    }
+}
+
+static void clear_fb(lv_color_t c)
+{
+    int i;
+    for(i = 0; i < GAUGE_W * GAUGE_SCR_H; i++) s_fb[i] = c;
+}
+
+static void fill_rect(int x, int y, int w, int h, lv_color_t c)
+{
+    int x0 = x;
+    int y0 = y;
+    int x1 = x + w;
+    int y1 = y + h;
+    int xx;
+    int yy;
+
+    if(x0 < 0) x0 = 0;
+    if(y0 < 0) y0 = 0;
+    if(x1 > GAUGE_W) x1 = GAUGE_W;
+    if(y1 > GAUGE_SCR_H) y1 = GAUGE_SCR_H;
+    if(x0 >= x1 || y0 >= y1) return;
+
+    for(yy = y0; yy < y1; yy++) {
+        for(xx = x0; xx < x1; xx++) {
+            s_fb[yy * GAUGE_W + xx] = c;
+        }
+    }
+}
+
+static void fill_circle(int cx, int cy, int r, lv_color_t c)
+{
+    int y;
+    int x;
+    int r2 = r * r;
+
+    for(y = -r; y <= r; y++) {
+        int yy = cy + y;
+        if((unsigned)yy >= GAUGE_SCR_H) continue;
+        for(x = -r; x <= r; x++) {
+            int xx = cx + x;
+            if((unsigned)xx >= GAUGE_W) continue;
+            if(x * x + y * y <= r2) {
+                s_fb[yy * GAUGE_W + xx] = c;
+            }
+        }
+    }
+}
+
+static void thick_line(int x0, int y0, int x1, int y1, int t, lv_color_t c)
+{
+    int dx = abs(x1 - x0);
+    int sx = x0 < x1 ? 1 : -1;
+    int dy = -abs(y1 - y0);
+    int sy = y0 < y1 ? 1 : -1;
+    int err = dx + dy;
+    int lo = -(t / 2);
+    int hi = lo + t - 1;
+    int ox;
+    int oy;
+
+    for(;;) {
+        for(oy = lo; oy <= hi; oy++) {
+            for(ox = lo; ox <= hi; ox++) {
+                put_px(x0 + ox, y0 + oy, c);
+            }
+        }
+        if(x0 == x1 && y0 == y1) break;
+        {
+            int e2 = 2 * err;
+            if(e2 >= dy) {
+                err += dy;
+                x0 += sx;
+            }
+            if(e2 <= dx) {
+                err += dx;
+                y0 += sy;
+            }
+        }
+    }
+}
+
+static void rect_outline(int x, int y, int w, int h, int t, lv_color_t c)
+{
+    fill_rect(x, y, w, t, c);
+    fill_rect(x, y + h - t, w, t, c);
+    fill_rect(x, y, t, h, c);
+    fill_rect(x + w - t, y, t, h, c);
+}
+
+static int angle_in_range_i(int a, int a0, int a1);
+
+static void fill_triangle(int x0, int y0, int x1, int y1, int x2, int y2, lv_color_t c)
+{
+    int min_y = y0 < y1 ? (y0 < y2 ? y0 : y2) : (y1 < y2 ? y1 : y2);
+    int max_y = y0 > y1 ? (y0 > y2 ? y0 : y2) : (y1 > y2 ? y1 : y2);
+    int y;
+
+    for(y = min_y; y <= max_y; y++) {
+        int nodes[3];
+        int n = 0;
+        int i;
+        int j;
+
+        if((y >= y0 && y < y1) || (y >= y1 && y < y0)) {
+            nodes[n++] = x0 + (y - y0) * (x1 - x0) / (y1 - y0);
+        }
+        if((y >= y1 && y < y2) || (y >= y2 && y < y1)) {
+            nodes[n++] = x1 + (y - y1) * (x2 - x1) / (y2 - y1);
+        }
+        if((y >= y2 && y < y0) || (y >= y0 && y < y2)) {
+            nodes[n++] = x2 + (y - y2) * (x0 - x2) / (y0 - y2);
+        }
+
+        if(n < 2) continue;
+        for(i = 0; i < n - 1; i++) {
+            for(j = i + 1; j < n; j++) {
+                if(nodes[j] < nodes[i]) {
+                    int tmp = nodes[i];
+                    nodes[i] = nodes[j];
+                    nodes[j] = tmp;
+                }
+            }
+        }
+        fill_rect(nodes[0], y, nodes[n - 1] - nodes[0] + 1, 1, c);
+    }
+}
+
+static int angle_index(float deg)
+{
+    int i = (int)floorf(deg * 2.0f + 0.5f);
+    i %= 720;
+    if(i < 0) i += 720;
+    return i;
+}
+
+static void draw_arc(int cx, int cy, int r, int t, float a0, float a1, lv_color_t c)
+{
+    float span = a1 - a0;
+    int steps;
+    int i;
+    int lo;
+    int hi;
+    int ox;
+    int oy;
+
+    if(span < 0) {
+        float tmp = a0;
+        a0 = a1;
+        a1 = tmp;
+        span = -span;
+    }
+    if(span == 0.0f) return;
+
+    steps = (int)(span * 2.0f);
+    if(steps < 1) steps = 1;
+    lo = -(t / 2);
+    hi = lo + t - 1;
+
+    for(i = 0; i <= steps; i++) {
+        int id = angle_index(a0 + span * (float)i / (float)steps);
+        int x = cx + (r * s_cos[id]) / 4096;
+        int y = cy + (r * s_sin[id]) / 4096;
+        for(oy = lo; oy <= hi; oy++) {
+            for(ox = lo; ox <= hi; ox++) {
+                put_px(x + ox, y + oy, c);
+            }
+        }
+    }
+}
+
+static void draw_sector(int cx, int cy, int r, float a0, float a1, lv_color_t c)
+{
+    int a0i;
+    int a1i;
+    int y;
+    int x;
+    int r2 = r * r;
+
+    if(a1 < a0) {
+        float tmp = a0;
+        a0 = a1;
+        a1 = tmp;
+    }
+    if(a1 - a0 >= 360.0f) {
+        a0i = 0;
+        a1i = 3600;
+    }
+    else {
+        a0i = (int)floorf(a0 * 10.0f + 0.5f);
+        a1i = (int)floorf(a1 * 10.0f + 0.5f);
+    }
+    if(a0i == a1i) return;
+
+    /* The 240x240 angle map is built once.  This fills sectors solidly,
+     * without the pinholes a radial line fan produces on the small panel. */
+    for(y = -r; y <= r; y++) {
+        int yy = cy + y;
+        if((unsigned)yy >= GAUGE_SCR_H) continue;
+        for(x = -r; x <= r; x++) {
+            int xx = cx + x;
+            int tx;
+            int ty;
+            if((unsigned)xx >= GAUGE_W) continue;
+            if(x * x + y * y > r2) continue;
+            tx = GAUGE_CX + x;
+            ty = GAUGE_CY + y;
+            if((unsigned)tx >= GAUGE_W || (unsigned)ty >= GAUGE_SCR_H) continue;
+            if(angle_in_range_i((int)s_angle_map[ty * GAUGE_W + tx], a0i, a1i)) {
+                s_fb[yy * GAUGE_W + xx] = c;
+            }
+        }
+    }
+}
+
+static int angle_in_range(float a, float a0, float a1)
+{
+    while(a0 < 0.0f) {
+        a0 += 360.0f;
+        a1 += 360.0f;
+    }
+    while(a0 >= 360.0f) {
+        a0 -= 360.0f;
+        a1 -= 360.0f;
+    }
+    while(a < 0.0f) a += 360.0f;
+    while(a >= 360.0f) a -= 360.0f;
+
+    if(a1 >= 360.0f) return (a >= a0 || a <= (a1 - 360.0f));
+    return (a >= a0 && a <= a1);
+}
+
+static int angle_in_range_i(int a, int a0, int a1)
+{
+    while(a0 < 0) {
+        a0 += 3600;
+        a1 += 3600;
+    }
+    while(a0 >= 3600) {
+        a0 -= 3600;
+        a1 -= 3600;
+    }
+    if(a1 >= 3600) return (a >= a0 || a <= (a1 - 3600));
+    return (a >= a0 && a <= a1);
+}
+
+static void hatched_band(int cx, int cy, int r_in, int r_out, float a0, float a1, lv_color_t c)
+{
+    int y;
+    int x;
+    int r_in2 = r_in * r_in;
+    int r_out2 = r_out * r_out;
+
+    for(y = cy - r_out; y <= cy + r_out; y++) {
+        int dy = y - cy;
+        if((unsigned)y >= GAUGE_SCR_H) continue;
+        for(x = cx - r_out; x <= cx + r_out; x++) {
+            int dx = x - cx;
+            int d2;
+            float a;
+            if((unsigned)x >= GAUGE_W) continue;
+            d2 = dx * dx + dy * dy;
+            if(d2 < r_in2 || d2 > r_out2) continue;
+            a = atan2f((float)dy, (float)dx) * 57.29577951308232f;
+            if(!angle_in_range(a, a0, a1)) continue;
+            if(((x + y) & 3) != 0) {
+                s_fb[y * GAUGE_W + x] = c;
+            }
+        }
+    }
+}
+
+/* ------------------------------------------------------------------------- */
+/* Geometry / labels                                                          */
+/* ------------------------------------------------------------------------- */
+
+static float scale_angle(float value)
+{
+    return 135.0f + (value - 5.0f) * (255.0f / 12.0f);
+}
+
+static lv_obj_t *make_label(lv_obj_t *parent, const char *txt, const lv_font_t *font,
+                            uint32_t color, int x, int y, int w, int h, lv_text_align_t align)
+{
+    lv_obj_t *label = lv_label_create(parent);
+    lv_obj_set_pos(label, x, y);
+    lv_obj_set_size(label, w, h);
+    lv_label_set_long_mode(label, LV_LABEL_LONG_CLIP);
+    lv_label_set_text(label, txt ? txt : "");
+    lv_obj_set_style_text_font(label, font, 0);
+    lv_obj_set_style_text_color(label, lv_color_hex(color), 0);
+    lv_obj_set_style_text_align(label, align, 0);
+    lv_obj_set_style_bg_opa(label, LV_OPA_TRANSP, 0);
+    lv_obj_set_style_border_width(label, 0, 0);
+    lv_obj_set_style_pad_all(label, 0, 0);
+    lv_obj_clear_flag(label, LV_OBJ_FLAG_SCROLLABLE);
+    return label;
+}
+
+static void set_hidden(lv_obj_t *obj, int hidden)
+{
+    if(hidden) lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
+    else lv_obj_clear_flag(obj, LV_OBJ_FLAG_HIDDEN);
+}
+
+static lv_obj_t *make_layer(void)
+{
+    lv_obj_t *layer = lv_obj_create(lv_scr_act());
+    lv_obj_set_pos(layer, 0, 0);
+    lv_obj_set_size(layer, GAUGE_W, GAUGE_SCR_H);
+    lv_obj_set_style_bg_opa(layer, LV_OPA_TRANSP, 0);
+    lv_obj_set_style_border_width(layer, 0, 0);
+    lv_obj_set_style_pad_all(layer, 0, 0);
+    lv_obj_set_style_radius(layer, 0, 0);
+    lv_obj_clear_flag(layer, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_add_flag(layer, LV_OBJ_FLAG_HIDDEN);
+    return layer;
+}
+
+/* ------------------------------------------------------------------------- */
+/* Static main screen                                                         */
+/* ------------------------------------------------------------------------- */
+
+static void draw_scale_ticks(void)
+{
+    int v;
+    for(v = 5; v <= 17; v++) {
+        float a = scale_angle((float)v);
+        int id = angle_index(a);
+        int x1 = GAUGE_CX + (96 * s_cos[id]) / 4096;
+        int y1 = GAUGE_CY + (96 * s_sin[id]) / 4096;
+        int x2 = GAUGE_CX + (101 * s_cos[id]) / 4096;
+        int y2 = GAUGE_CY + (101 * s_sin[id]) / 4096;
+        thick_line(x1, y1, x2, y2, 1, c_white);
+
+        if(v < 17) {
+            float am = scale_angle((float)v + 0.5f);
+            int idm = angle_index(am);
+            int mx1 = GAUGE_CX + (99 * s_cos[idm]) / 4096;
+            int my1 = GAUGE_CY + (99 * s_sin[idm]) / 4096;
+            int mx2 = GAUGE_CX + (101 * s_cos[idm]) / 4096;
+            int my2 = GAUGE_CY + (101 * s_sin[idm]) / 4096;
+            thick_line(mx1, my1, mx2, my2, 1, c_white);
+        }
+    }
+}
+
+static void draw_main_icons(void)
+{
+    int i;
+
+    /* Left: small green oil/aux gauge. */
+    fill_circle(72, 162, 13, c_green);
+    draw_arc(72, 162, 13, 1, 0, 360, c_white);
+    draw_arc(72, 162, 9, 1, 0, 360, c_dark);
+    thick_line(72, 162, 64, 156, 1, c_white);
+    thick_line(72, 162, 72, 151, 1, c_white);
+    thick_line(72, 162, 80, 156, 1, c_white);
+
+    /* Right: simplified gear stack. */
+    draw_arc(168, 158, 22, 5, 25, 155, c_dark);
+    for(i = 0; i < 6; i++) {
+        float a = 30.0f + (float)i * 24.0f;
+        int id = angle_index(a);
+        int x = 168 + (20 * s_cos[id]) / 4096;
+        int y = 158 + (20 * s_sin[id]) / 4096;
+        fill_circle(x, y, 5, (i == 4) ? c_red : c_gray);
+        draw_arc(x, y, 5, 1, 0, 360, c_black);
+    }
+
+    /* Center: A/C/R status triangle. */
+    fill_triangle(104, 176, 136, 176, 120, 202, c_red);
+    thick_line(104, 176, 136, 176, 1, c_white);
+    thick_line(136, 176, 120, 202, 1, c_white);
+    thick_line(120, 202, 104, 176, 1, c_white);
+
+    /* Bottom: battery / stack bar. */
+    fill_rect(96, 210, 48, 14, c_dark);
+    rect_outline(96, 210, 48, 14, 1, c_white);
+    for(i = 0; i < 5; i++) {
+        fill_rect(99 + i * 9, 213, 6, 8, (i < 4) ? c_green : c_dark);
+    }
+    fill_rect(118, 224, 4, 2, c_white);
+}
+
+static void build_main_bg(void)
+{
+    clear_fb(c_black);
+
+    /* Outer rings. */
+    draw_arc(GAUGE_CX, GAUGE_CY, 116, 2, 0, 360, c_white);
+    draw_arc(GAUGE_CX, GAUGE_CY, 112, 1, 0, 360, c_blue);
+
+    draw_scale_ticks();
+
+    /* Static, hatched scale zones.  Only the thin orange arc moves. */
+    hatched_band(GAUGE_CX, GAUGE_CY, 84, 96, scale_angle(5),  scale_angle(10), c_blue);
+    hatched_band(GAUGE_CX, GAUGE_CY, 84, 96, scale_angle(10), scale_angle(13), c_yellow);
+    hatched_band(GAUGE_CX, GAUGE_CY, 84, 96, scale_angle(13), scale_angle(15), c_red);
+    hatched_band(GAUGE_CX, GAUGE_CY, 84, 96, scale_angle(15), scale_angle(17), c_magenta);
+
+    /* Inner hub: green "OIL" side and black "STACK" side. */
+    fill_circle(GAUGE_CX, GAUGE_CY, 58, c_black);
+    /* Green OIL sector only in the lower-left; the digits stay on black. */
+    draw_sector(GAUGE_CX, GAUGE_CY, 56, 90, 180, c_green);
+    draw_sector(GAUGE_CX, GAUGE_CY, 56, 180, 360, c_black);
+    draw_arc(GAUGE_CX, GAUGE_CY, 58, 2, 0, 360, c_white);
+    thick_line(GAUGE_CX, GAUGE_CY, GAUGE_CX, GAUGE_CY + 58, 1, c_white);
+    thick_line(GAUGE_CX - 56, GAUGE_CY, GAUGE_CX + 56, GAUGE_CY, 1, c_white);
+
+    /* Orange battery / stack symbol in the middle. */
+    fill_rect(104, 112, 32, 24, c_orange);
+    fill_rect(118, 112, 4, 24, c_green);
+    fill_rect(100, 118, 4, 12, c_red);
+    fill_rect(136, 118, 4, 12, c_red);
+    rect_outline(103, 111, 34, 26, 1, c_white);
+
+    draw_main_icons();
+
+    memcpy(s_main_bg, s_fb, GAUGE_W * GAUGE_SCR_H * sizeof(lv_color_t));
+}
+
+static void create_main_layer(void)
+{
+    int i;
+
+    s_main_layer = make_layer();
+
+    for(i = 0; i < 13; i++) {
+        int v = 5 + i;
+        float a = scale_angle((float)v);
+        int id = angle_index(a);
+        int x = GAUGE_CX + (104 * s_cos[id]) / 4096;
+        int y = GAUGE_CY + (104 * s_sin[id]) / 4096;
+        s_outer_label[i] = make_label(s_main_layer, "", &lv_font_montserrat_10,
+                                     0xFFFFFF, x - 12, y - 6, 24, 12, LV_TEXT_ALIGN_CENTER);
+        lv_label_set_text_fmt(s_outer_label[i], "%d", v);
+    }
+
+    s_speed_label = make_label(s_main_layer, "-000-", &ui_font_Seg48,
+                               0xFFFFFF, 50, 74, 140, 40, LV_TEXT_ALIGN_CENTER);
+
+    s_oil_label = make_label(s_main_layer, "OIL", &lv_font_montserrat_8,
+                             0xFFFFFF, 61, 128, 36, 10, LV_TEXT_ALIGN_CENTER);
+    s_stack_label = make_label(s_main_layer, "STACK", &lv_font_montserrat_8,
+                               0xFF3B30, 128, 142, 50, 10, LV_TEXT_ALIGN_CENTER);
+
+    s_acr_label[0] = make_label(s_main_layer, "A", &lv_font_montserrat_10,
+                                0xFFFFFF, 106, 177, 12, 12, LV_TEXT_ALIGN_CENTER);
+    s_acr_label[1] = make_label(s_main_layer, "C", &lv_font_montserrat_10,
+                                0xFFFFFF, 124, 177, 12, 12, LV_TEXT_ALIGN_CENTER);
+    s_acr_label[2] = make_label(s_main_layer, "R", &lv_font_montserrat_10,
+                                0xFFFFFF, 114, 189, 12, 12, LV_TEXT_ALIGN_CENTER);
+
+    s_gear_label = make_label(s_main_layer, "5", &lv_font_montserrat_10,
+                              0xFFFFFF, 160, 148, 16, 12, LV_TEXT_ALIGN_CENTER);
+}
+
+/* ------------------------------------------------------------------------- */
+/* Boot screen                                                                */
+/* ------------------------------------------------------------------------- */
+
+static void draw_boot_grid(void)
+{
+    int i;
+    int r2 = 110 * 110;
+
+    for(i = 20; i < GAUGE_W; i += 20) {
+        int y;
+        int x;
+        for(y = 0; y < GAUGE_SCR_H; y++) {
+            int dy = y - GAUGE_CY;
+            int dx = i - GAUGE_CX;
+            if(dx * dx + dy * dy <= r2) put_px(i, y, c_grid);
+        }
+        for(x = 0; x < GAUGE_W; x++) {
+            int dx = x - GAUGE_CX;
+            int dy = i - GAUGE_CY;
+            if(dx * dx + dy * dy <= r2) put_px(x, i, c_grid);
+        }
+    }
+}
+
+static void draw_boot_frame(uint32_t elapsed)
+{
+    float progress = (float)elapsed / 1200.0f;
+    uint32_t t = elapsed;
+
+    if(progress > 1.0f) progress = 1.0f;
+
+    clear_fb(c_black);
+    draw_boot_grid();
+
+    draw_arc(GAUGE_CX, GAUGE_CY, 116, 2, 0, 360, c_dark);
+    draw_arc(GAUGE_CX, GAUGE_CY, 112, 1, 0, 360, c_blue);
+    draw_arc(GAUGE_CX, GAUGE_CY, 109, 1, 0, 360, c_white);
+    draw_arc(GAUGE_CX, GAUGE_CY, 116, 2, -90.0f, -90.0f + 360.0f * progress, c_white);
+
+    if(t >= 500u) {
+        fill_rect(24, 44, 192, 34, c_white);
+        fill_triangle(24, 44, 44, 44, 24, 78, c_black);
+        fill_triangle(216, 44, 196, 44, 216, 78, c_black);
+        thick_line(44, 78, 196, 78, 1, c_white);
+    }
+
+    if(t >= 3000u) {
+        thick_line(35, 152, 205, 152, 1, c_white);
+    }
+
+    lv_obj_invalidate(s_canvas);
+}
+
+static void create_boot_layer(void)
+{
+    int i;
+    static const char *left_text[5] = {
+        "SYSTEM CHECK", "MACHINE CONDITION", "RETINA-CODE", "VOICE PRINT-CODE", "PHYSICAL CONDITION"
+    };
+    static const char *right_text[5] = {
+        "...OK", "...GREEN", "...OK", "...OK", "...GREEN"
+    };
+
+    s_boot_layer = make_layer();
+
+    s_boot_title = make_label(s_boot_layer, "ASURADA", &lv_font_montserrat_28,
+                              0x000000, 30, 48, 180, 30, LV_TEXT_ALIGN_CENTER);
+    s_boot_sub = make_label(s_boot_layer, "NAVIGATION-CYBERSYSTEM", &lv_font_montserrat_10,
+                            0xFFD400, 18, 82, 204, 12, LV_TEXT_ALIGN_CENTER);
+
+    for(i = 0; i < 5; i++) {
+        int y = (i < 2) ? (96 + i * 14) : (172 + (i - 2) * 12);
+        s_boot_left[i] = make_label(s_boot_layer, left_text[i], &lv_font_montserrat_8,
+                                    0xFFFFFF, 56, y, 90, 12, LV_TEXT_ALIGN_LEFT);
+        s_boot_right[i] = make_label(s_boot_layer, right_text[i], &lv_font_montserrat_8,
+                                     0xFFFFFF, 146, y, 44, 12, LV_TEXT_ALIGN_RIGHT);
+        set_hidden(s_boot_left[i], 1);
+        set_hidden(s_boot_right[i], 1);
+    }
+
+    s_boot_driver = make_label(s_boot_layer, "DRIVER-CHECK", &lv_font_montserrat_20,
+                               0xFFFFFF, 30, 126, 180, 24, LV_TEXT_ALIGN_CENTER);
+    s_boot_master = make_label(s_boot_layer, "MASTER", &lv_font_montserrat_10,
+                               0xFFFFFF, 30, 154, 180, 12, LV_TEXT_ALIGN_CENTER);
+
+    set_hidden(s_boot_title, 1);
+    set_hidden(s_boot_sub, 1);
+    set_hidden(s_boot_driver, 1);
+    set_hidden(s_boot_master, 1);
+}
+
+static void render_boot(uint32_t elapsed)
+{
+    uint32_t t = elapsed;
+
+    draw_boot_frame(elapsed);
+
+    set_hidden(s_boot_title, t < 600u);
+    set_hidden(s_boot_sub, t < 600u);
+    set_hidden(s_boot_left[0], t < 1700u);
+    set_hidden(s_boot_right[0], t < 1700u);
+    set_hidden(s_boot_left[1], t < 1700u);
+    set_hidden(s_boot_right[1], t < 1700u);
+    set_hidden(s_boot_driver, t < 2800u);
+    set_hidden(s_boot_master, t < 2800u);
+    set_hidden(s_boot_left[2], t < 3900u);
+    set_hidden(s_boot_right[2], t < 3900u);
+    set_hidden(s_boot_left[3], t < 3900u);
+    set_hidden(s_boot_right[3], t < 3900u);
+    set_hidden(s_boot_left[4], t < 3900u);
+    set_hidden(s_boot_right[4], t < 3900u);
+
+    lv_label_set_text(s_boot_master, (t >= 5000u) ? "READY FOR START" : "MASTER");
+}
+
+/* ------------------------------------------------------------------------- */
+/* Main screen                                                                */
+/* ------------------------------------------------------------------------- */
+
+static float ease_out_cubic(float t)
+{
+    float u = 1.0f - t;
+    return 1.0f - u * u * u;
+}
+
+static void render_main(uint32_t elapsed)
+{
+    float t = (float)elapsed / 1000.0f;
+    float speed;
+    int outer;
+    float a_end;
+
+    memcpy(s_fb, s_main_bg, GAUGE_W * GAUGE_SCR_H * sizeof(lv_color_t));
+
+    if(t < 6.0f) {
+        speed = 365.0f * ease_out_cubic(t / 6.0f);
+    }
+    else {
+        speed = 365.0f;
+    }
+
+    outer = 5 + (int)(speed / 365.0f * 12.0f + 0.5f);
+    if(outer > 17) outer = 17;
+    a_end = 135.0f + (float)(outer - 5) * (255.0f / 12.0f);
+    if(a_end > 135.0f) {
+        draw_arc(GAUGE_CX, GAUGE_CY, 80, 2, 135.0f, a_end, c_orange);
+        {
+            int id = angle_index(a_end);
+            int x = GAUGE_CX + (80 * s_cos[id]) / 4096;
+            int y = GAUGE_CY + (80 * s_sin[id]) / 4096;
+            fill_circle(x, y, 2, c_orange);
+        }
+    }
+
+    lv_label_set_text_fmt(s_speed_label, "-%03d-", (int)(speed + 0.5f));
+    lv_obj_invalidate(s_canvas);
+}
+
+/* ------------------------------------------------------------------------- */
+/* Boost screen                                                               */
+/* ------------------------------------------------------------------------- */
+
+static void render_boost(uint32_t elapsed)
+{
+    float remain = 1.0f - (float)elapsed / (float)BOOST_MS;
+    float red_end;
+    float green_end;
+    int i;
+
+    if(remain < 0.0f) remain = 0.0f;
+    if(remain > 1.0f) remain = 1.0f;
+
+    clear_fb(c_black);
+
+    draw_arc(GAUGE_CX, GAUGE_CY, 116, 2, 0, 360, c_white);
+    draw_arc(GAUGE_CX, GAUGE_CY, 112, 1, 0, 360, c_blue);
+    draw_arc(GAUGE_CX, GAUGE_CY, 108, 1, 0, 360, c_white);
+
+    red_end = 45.0f + 270.0f * remain;
+    draw_sector(GAUGE_CX, GAUGE_CY, 112, 45.0f, red_end, c_red);
+
+    /* Recovery wedge stays on the right side while the red fan shrinks. */
+    green_end = 315.0f + 80.0f * (1.0f - remain);
+    draw_sector(GAUGE_CX, GAUGE_CY, 112, 315.0f, green_end, c_green);
+
+    draw_arc(GAUGE_CX, GAUGE_CY, 106, 5, 300.0f, 340.0f, c_yellow);
+
+    for(i = 0; i < 18; i++) {
+        float a = -90.0f + (float)i * 20.0f;
+        int id = angle_index(a);
+        int x = GAUGE_CX + (112 * s_cos[id]) / 4096;
+        int y = GAUGE_CY + (112 * s_sin[id]) / 4096;
+        thick_line(GAUGE_CX, GAUGE_CY, x, y, 2, c_black);
+    }
+
+    fill_rect(64, 86, 112, 64, c_black);
+    rect_outline(64, 86, 112, 64, 2, c_yellow);
+
+    {
+        int tenths = (int)(remain * BOOST_DISPLAY_SEC * 10.0f + 0.5f);
+        if(tenths < 0) tenths = 0;
+        lv_label_set_text_fmt(s_boost_num, "%02d.%d", tenths / 10, tenths % 10);
+    }
+    lv_obj_invalidate(s_canvas);
+}
+
+static void create_boost_layer(void)
+{
+    s_boost_layer = make_layer();
+    s_boost_num = make_label(s_boost_layer, "20.0", &ui_font_Seg48,
+                             0xFFFFFF, 64, 90, 112, 40, LV_TEXT_ALIGN_CENTER);
+    s_boost_sec = make_label(s_boost_layer, "SEC.", &lv_font_montserrat_12,
+                             0xFFFFFF, 80, 132, 80, 14, LV_TEXT_ALIGN_CENTER);
+}
+
+/* ------------------------------------------------------------------------- */
+/* Spiral screen                                                              */
+/* ------------------------------------------------------------------------- */
+
+static void render_spiral(uint32_t elapsed)
+{
+    float rot;
+    int count;
+    int i;
+
+    rot = fmodf((float)elapsed * 90.0f / 1000.0f, 360.0f);
+    count = 6 - (int)(elapsed / 1000u);
+    if(count < 0) count = 0;
+
+    clear_fb(c_black);
+
+    /* Two opposite orange quadrants rotate behind the node ring. */
+    draw_sector(GAUGE_CX, GAUGE_CY, 104, rot, rot + 90.0f, c_orange);
+    draw_sector(GAUGE_CX, GAUGE_CY, 104, rot + 180.0f, rot + 270.0f, c_orange);
+
+    draw_arc(GAUGE_CX, GAUGE_CY, 116, 2, 0, 360, c_white);
+    draw_arc(GAUGE_CX, GAUGE_CY, 112, 1, 0, 360, c_blue);
+    draw_arc(GAUGE_CX, GAUGE_CY, 108, 5, 0, 360, c_yellow);
+    draw_arc(GAUGE_CX, GAUGE_CY, 100, 1, 0, 360, c_black);
+
+    for(i = 0; i < 18; i++) {
+        float a = -90.0f + (float)i * 20.0f;
+        int id = angle_index(a);
+        int x = GAUGE_CX + (94 * s_cos[id]) / 4096;
+        int y = GAUGE_CY + (94 * s_sin[id]) / 4096;
+        fill_circle(x, y, 7, (i % 3 == 0) ? c_white : c_gray);
+        draw_arc(x, y, 7, 1, 0, 360, c_black);
+    }
+
+    for(i = 0; i < 4; i++) {
+        float a = (float)i * 90.0f;
+        int id = angle_index(a);
+        int id2 = angle_index(a - 14.0f);
+        int id3 = angle_index(a + 14.0f);
+        int x1 = GAUGE_CX + (102 * s_cos[id]) / 4096;
+        int y1 = GAUGE_CY + (102 * s_sin[id]) / 4096;
+        int x2 = GAUGE_CX + (84 * s_cos[id2]) / 4096;
+        int y2 = GAUGE_CY + (84 * s_sin[id2]) / 4096;
+        int x3 = GAUGE_CX + (84 * s_cos[id3]) / 4096;
+        int y3 = GAUGE_CY + (84 * s_sin[id3]) / 4096;
+        fill_triangle(x1, y1, x2, y2, x3, y3, c_blue);
+    }
+
+    draw_arc(GAUGE_CX, GAUGE_CY, 66, 4, 0, 360, c_yellow);
+    draw_arc(GAUGE_CX, GAUGE_CY, 58, 8, 90.0f, 270.0f, c_green);
+    draw_arc(GAUGE_CX, GAUGE_CY, 58, 8, 270.0f, 450.0f, c_blue);
+    fill_circle(GAUGE_CX, GAUGE_CY, 48, c_black);
+    draw_arc(GAUGE_CX, GAUGE_CY, 48, 1, 0, 360, c_gray);
+
+    lv_label_set_text_fmt(s_spiral_num, "%d", count);
+    lv_obj_invalidate(s_canvas);
+}
+
+static void create_spiral_layer(void)
+{
+    s_spiral_layer = make_layer();
+    s_spiral_num = make_label(s_spiral_layer, "6", &ui_font_Seg48,
+                              0xFFFFFF, 94, 90, 52, 44, LV_TEXT_ALIGN_CENTER);
+    s_stop_label = make_label(s_spiral_layer, "STOP", &lv_font_montserrat_10,
+                              0x1E90FF, 132, 146, 40, 12, LV_TEXT_ALIGN_CENTER);
+}
+
+/* ------------------------------------------------------------------------- */
+/* State machine                                                              */
+/* ------------------------------------------------------------------------- */
+
+static void set_mode(gauge_mode_t mode)
+{
+    s_mode = mode;
+    s_mode_start = lv_tick_get();
+
+    set_hidden(s_main_layer, 1);
+    set_hidden(s_boot_layer, 1);
+    set_hidden(s_boost_layer, 1);
+    set_hidden(s_spiral_layer, 1);
+
+    if(mode == MODE_BOOT) {
+        int i;
+        set_hidden(s_boot_layer, 0);
+        set_hidden(s_boot_title, 1);
+        set_hidden(s_boot_sub, 1);
+        set_hidden(s_boot_driver, 1);
+        set_hidden(s_boot_master, 1);
+        for(i = 0; i < 5; i++) {
+            set_hidden(s_boot_left[i], 1);
+            set_hidden(s_boot_right[i], 1);
+        }
+    }
+    else if(mode == MODE_MAIN) {
+        set_hidden(s_main_layer, 0);
+    }
+    else if(mode == MODE_BOOST) {
+        set_hidden(s_boost_layer, 0);
+    }
+    else if(mode == MODE_SPIRAL) {
+        set_hidden(s_spiral_layer, 0);
+    }
+}
+
+static void gauge_timer_cb(lv_timer_t *timer)
+{
+    uint32_t elapsed;
+    (void)timer;
+
+    elapsed = lv_tick_elaps(s_mode_start);
+
+    switch(s_mode) {
+        case MODE_BOOT:
+            render_boot(elapsed);
+            if(elapsed >= BOOT_MS) {
+                s_main_next = MODE_BOOST;
+                set_mode(MODE_MAIN);
+            }
+            break;
+
+        case MODE_MAIN:
+            render_main(elapsed);
+            if(elapsed >= MAIN_MS) {
+                set_mode(s_main_next);
+            }
+            break;
+
+        case MODE_BOOST:
+            render_boost(elapsed);
+            if(elapsed >= BOOST_MS) {
+                s_main_next = MODE_SPIRAL;
+                set_mode(MODE_MAIN);
+            }
+            break;
+
+        case MODE_SPIRAL:
+            render_spiral(elapsed);
+            if(elapsed >= SPIRAL_MS) {
+                s_main_next = MODE_BOOST;
+                set_mode(MODE_MAIN);
+            }
+            break;
+
+        default:
+            break;
+    }
+}
+
+void Gauge_TriggerBoost(void)
+{
+    s_main_next = MODE_SPIRAL;
+    set_mode(MODE_BOOST);
+}
+
+void Gauge_TriggerSpiral(void)
+{
+    s_main_next = MODE_BOOST;
+    set_mode(MODE_SPIRAL);
+}
+
+/* ------------------------------------------------------------------------- */
+/* Initialization                                                             */
+/* ------------------------------------------------------------------------- */
+
+void Gauge_Init(void)
+{
+    int i;
+    lv_obj_t *screen;
+
+    for(i = 0; i < 720; i++) {
+        float a = (float)i * 0.5f * GAUGE_PI / 180.0f;
+        s_sin[i] = (int16_t)(sinf(a) * 4096.0f);
+        s_cos[i] = (int16_t)(cosf(a) * 4096.0f);
+    }
+
+    c_black   = lv_color_hex(0x000000);
+    c_white   = lv_color_hex(0xFFFFFF);
+    c_blue    = lv_color_hex(0x0066FF);
+    c_orange  = lv_color_hex(0xFF5A00);
+    c_red     = lv_color_hex(0xE60012);
+    c_yellow  = lv_color_hex(0xFFD400);
+    c_green   = lv_color_hex(0x00A651);
+    c_magenta = lv_color_hex(0xE6007E);
+    c_gray    = lv_color_hex(0x9A9A9A);
+    c_dark    = lv_color_hex(0x242424);
+    c_grid    = lv_color_hex(0x242424);
+
+    s_fb = (lv_color_t *)GAUGE_MALLOC(GAUGE_W * GAUGE_SCR_H * sizeof(lv_color_t));
+    s_main_bg = (lv_color_t *)GAUGE_MALLOC(GAUGE_W * GAUGE_SCR_H * sizeof(lv_color_t));
+    s_angle_map = (uint16_t *)GAUGE_MALLOC(GAUGE_W * GAUGE_SCR_H * sizeof(uint16_t));
+    if(s_fb == NULL || s_main_bg == NULL || s_angle_map == NULL) {
+        LV_LOG_ERROR("Gauge: framebuffer allocation failed");
+        return;
+    }
+
+    {
+        int y;
+        int x;
+        for(y = 0; y < GAUGE_SCR_H; y++) {
+            for(x = 0; x < GAUGE_W; x++) {
+                float a = atan2f((float)(y - GAUGE_CY), (float)(x - GAUGE_CX)) * 57.29577951308232f;
+                int ai;
+                if(a < 0.0f) a += 360.0f;
+                ai = (int)(a * 10.0f + 0.5f) % 3600;
+                s_angle_map[y * GAUGE_W + x] = (uint16_t)ai;
+            }
+        }
+    }
+
+    screen = lv_scr_act();
+    lv_obj_set_style_bg_color(screen, c_black, 0);
+    lv_obj_set_style_bg_opa(screen, LV_OPA_COVER, 0);
+
+    s_canvas = lv_canvas_create(screen);
+    lv_canvas_set_buffer(s_canvas, s_fb, GAUGE_W, GAUGE_SCR_H, LV_IMG_CF_TRUE_COLOR);
+    lv_obj_set_pos(s_canvas, 0, 0);
+    lv_obj_set_size(s_canvas, GAUGE_W, GAUGE_SCR_H);
+    lv_obj_set_style_bg_opa(s_canvas, LV_OPA_TRANSP, 0);
+    lv_obj_set_style_border_width(s_canvas, 0, 0);
+    lv_obj_set_style_pad_all(s_canvas, 0, 0);
+    lv_obj_set_style_radius(s_canvas, 0, 0);
+    lv_obj_clear_flag(s_canvas, LV_OBJ_FLAG_SCROLLABLE);
+
+    create_main_layer();
+    create_boot_layer();
+    create_boost_layer();
+    create_spiral_layer();
+
+    build_main_bg();
+    set_mode(MODE_BOOT);
+
+    lv_timer_create(gauge_timer_cb, 30, NULL);
+}

@@ -52,6 +52,16 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="Src/Face.h" />
+		<Unit filename="Src/Gauge.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Src/Gauge.h" />
+		<Unit filename="Src/Meter.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Src/SF_Sniper.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="UI/components/ui_comp_hook.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -71,6 +81,24 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="UI/images/ui_img_centerindec_png.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="UI/images/ui_img_eye_1_png.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="UI/images/ui_img_eye_2_png.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="UI/images/ui_img_eye_3_png.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="UI/images/ui_img_eye_png.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="UI/images/ui_img_eye_r_png.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="UI/images/ui_img_eye_rr_png.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="UI/images/ui_img_mainindector_png.c">
@@ -98,6 +126,9 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="UI/screens/ui_BoostModeB.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="UI/screens/ui_Screen1.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="UI/ui.c">
