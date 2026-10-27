@@ -38,14 +38,16 @@ LV_FONT_DECLARE(ui_font_Seg48)
 #define MAIN_R_IN     61
 #define MAIN_LABEL_R  86
 
-/* Demo timing.  BOOST_MS is a full 20 second countdown. */
 // #define BOOT_MS            6200u
 // #define MAIN_MS            8500u
 #define BOOT_MS            2200u
 #define MAIN_MS            2500u
-#define BOOST_MS          20000u
 #define SPIRAL_MS          7000u
-#define BOOST_DISPLAY_SEC  20.0f
+
+
+//一段Boost 总时长
+#define BOOST_DISPLAY_SEC  21.0f
+#define BOOST_DURATION_MS  ((uint32_t)(BOOST_DISPLAY_SEC * 1000.0f + 0.5f))
 
 /* The boost countdown frame is fixed.  Only the red fan and the green
  * recovery wedge change while the timer runs; the black cut-out, its yellow
@@ -407,6 +409,13 @@ static void draw_sector(int cx, int cy, int r, float a0, float a1, lv_color_t c)
                        start_angle, end_angle, &dsc);
 }
 
+
+// pattern：
+// 0 → 实心
+// 1 → 水平隔行条纹
+// 2 → 斜向点阵
+// 3 → 另一种斜向纹理
+// 4 → 竖向条纹
 static void fill_annular(int r_in, int r_out, float a0, float a1, int pattern, lv_color_t c)
 {
     if(r_out <= r_in || r_out <= 0) return;
@@ -471,9 +480,9 @@ static void fill_annular(int r_in, int r_out, float a0, float a1, int pattern, l
 
 static void draw_outer_rings(void)
 {
-    draw_arc(GAUGE_CX, GAUGE_CY, 117, 2, 0, 360, c_white);
-    draw_arc(GAUGE_CX, GAUGE_CY, 114, 1, 0, 360, c_blue);
-    draw_arc(GAUGE_CX, GAUGE_CY, 111, 1, 0, 360, c_white);
+    draw_arc(GAUGE_CX, GAUGE_CY, 118, 2, 0, 360, c_white);
+    draw_arc(GAUGE_CX, GAUGE_CY, 115, 2, 0, 360, c_white);
+    draw_arc(GAUGE_CX, GAUGE_CY, 112, 2, 0, 360, c_blue);
 }
 
 static void draw_radial(float angle, int r0, int r1, int t, lv_color_t c)
@@ -1041,23 +1050,19 @@ static void render_main(uint32_t elapsed)
 /* Boost screen                                                               */
 /* ------------------------------------------------------------------------- */
 
-static void draw_boost_panel(void)
+static void draw_boost_Number_bg(void)
 {
-    int px[8];
-    int py[8];
+    int px[4];
+    int py[4];
 
-    /* All cut-out coordinates are expressed directly from the gauge centre. */
-    px[0] = GAUGE_CX + 21; py[0] = GAUGE_CY - 40;
-    px[1] = GAUGE_CX + 94; py[1] = GAUGE_CY - 40;
-    px[2] = GAUGE_CX + 106; py[2] = GAUGE_CY - 27;
-    px[3] = GAUGE_CX + 106; py[3] = GAUGE_CY + 20;
-    px[4] = GAUGE_CX + 94; py[4] = GAUGE_CY + 30;
-    px[5] = GAUGE_CX + 11; py[5] = GAUGE_CY + 30;
-    px[6] = GAUGE_CX + 6;  py[6] = GAUGE_CY + 13;
-    px[7] = GAUGE_CX + 5;  py[7] = GAUGE_CY - 22;
-    fill_polygon(px, py, 8, c_black);
+    px[0] = GAUGE_CX + 15; py[0] = GAUGE_CY - 42;
+    px[1] = GAUGE_CX + 70; py[1] = GAUGE_CY - 42;
+    px[2] = GAUGE_CX + 70; py[2] = GAUGE_CY + 8;
+    px[3] = GAUGE_CX + 15; py[3] = GAUGE_CY + 8;
+    fill_polygon(px, py, 4, c_black);//c_black c_cyan
 }
 
+// Boost 倒计时界面
 static void draw_boost_bracket(void)
 {
     // Boost 倒计时数字上方横线
@@ -1080,52 +1085,62 @@ static void draw_boost_bracket(void)
     {
         int px[6];
         int py[6];
-        px[0] = GAUGE_CX + 68;  py[0] = GAUGE_CY + 19;
+        px[0] = GAUGE_CX + 72;  py[0] = GAUGE_CY + 19;
         px[1] = GAUGE_CX + 106; py[1] = GAUGE_CY + 19;
         px[2] = GAUGE_CX + 106; py[2] = GAUGE_CY + 25;
         px[3] = GAUGE_CX + 103; py[3] = GAUGE_CY + 37;
         px[4] = GAUGE_CX + 100; py[4] = GAUGE_CY + 37;
-        px[5] = GAUGE_CX + 70;  py[5] = GAUGE_CY + 25;
+        px[5] = GAUGE_CX + 72;  py[5] = GAUGE_CY + 25;
         fill_polygon(px, py, 6, c_boost_yellow);
     }
 
-    /* Small yellow lip with a black slit at the lower end. */
+    //SEC 右侧扇形下方装饰块
     {
-        int tx[5];
-        int ty[5];
-        tx[0] = GAUGE_CX + 94;  ty[0] = GAUGE_CY + 39;
-        tx[1] = GAUGE_CX + 101; ty[1] = GAUGE_CY + 39;
-        tx[2] = GAUGE_CX + 101; ty[2] = GAUGE_CY + 42;
-        tx[3] = GAUGE_CX + 99;  ty[3] = GAUGE_CY + 43;
-        tx[4] = GAUGE_CX + 94;  ty[4] = GAUGE_CY + 42;
-        fill_polygon(tx, ty, 5, c_boost_yellow);
-        fill_rect(GAUGE_CX + 96, GAUGE_CY + 39, 3, 1, c_black);
+        int tx[4];
+        int ty[4];
+        tx[0] = GAUGE_CX + 92;  ty[0] = GAUGE_CY + 35;
+        tx[1] = GAUGE_CX + 102; ty[1] = GAUGE_CY + 39;
+        tx[2] = GAUGE_CX + 100; ty[2] = GAUGE_CY + 44;
+        tx[3] = GAUGE_CX + 92;  ty[3] = GAUGE_CY + 39;
+        fill_polygon(tx, ty, 4, c_boost_yellow);
     }
 
-    // 外侧圆弧
+
+    // 黄色外侧圆弧上段扩展
+    draw_arc(GAUGE_CX, GAUGE_CY, 106, 8, -45.0f,-30.0f, c_boost_yellow);
+    // 黄色外侧圆弧
     draw_arc(GAUGE_CX, GAUGE_CY, 108, 6, -45.0f, 75.0f, c_boost_yellow);
 
 }
 
-static void draw_boost_recovery(void)
+static void draw_boost_recovery(float visible_end)
 {
     static const float a0s[5] = {25.0f, 31.5f, 41.0f, 51.0f, 60.5f};
     static const float a1s[5] = {29.5f, 39.0f, 49.0f, 58.5f, 70.5f};
     int i;
 
-    /* Five recovery bars matching the reference angular spacing. */
-    for(i = 0; i < 5; i++) {
-        fill_annular(74, 104, a0s[i], a1s[i], 0, c_boost_red);
+    /* Five recovery bars matching the reference angular spacing.  Below five
+     * seconds the bars retract from the high-angle side, like the main fan. */
+    for(i = 0; i < 5; i++) 
+    {
+        float a1 = a1s[i];
+        if(a1 > visible_end) a1 = visible_end;
+        if(a1 > a0s[i]) 
+        {
+            fill_annular(74, 104, a0s[i], a1, 0, c_boost_red);
+        }
     }
 }
 
+
 static void render_boost(uint32_t elapsed)
 {
-    float remain = 1.0f - (float)elapsed / (float)BOOST_MS;
+    float remain = 1.0f - (float)elapsed / (float)BOOST_DURATION_MS;
     float progress;
     float red_start;
     float red_end;
     float green_span;
+    float recovery_end;
     float center_a0;
     float center_a1;
     int centis;
@@ -1137,65 +1152,93 @@ static void render_boost(uint32_t elapsed)
     if(remain > 1.0f) remain = 1.0f;
     progress = 1.0f - remain;
 
+    /* Keep all five bars until five seconds remain, then retract them from
+     * 70.5 degrees down to their 25 degree start. */
+    recovery_end = 70.5f;
+    if(remain < 0.25f) 
+    {
+        recovery_end = 25.0f + 45.5f * (remain / 0.25f);
+    }
+
     clear_fb(c_black);
 
     /* Faint unlit spokes remain visible through the whole dial, as in the
      * video.  The red fan only covers the sector that is still active. */
-    for(i = 0; i < 24; i++) {
+    for(i = 0; i < 24; i++) 
+    {
         draw_radial(-90.0f + (float)i * 15.0f, BOOST_HUB_R, 111, 1, c_spoke);
     }
 
-    /* The lit fan grows from the fixed 72 degree edge towards the top-right.
-     * Its angular extent follows the remaining seconds, not a straight
-     * remain-to-angle interpolation. */
-    red_start = 75.5f;
-    red_end = 4.0f + 288.0f * remain;
-    if(red_end > red_start) {
-        fill_annular(BOOST_HUB_R, 111, red_start, red_end, 0, c_boost_red);
-        for(i = 0; i < 24; i++) {
+    // 红色大刻度
+    red_start = 76.0f;
+    red_end = 310.0f * remain;
+    if(red_end > red_start) 
+    {
+        fill_annular(BOOST_HUB_R, 110, red_start, red_end, 0, c_boost_red);
+
+        // 红色大刻度间隔线
+        for(i = 0; i < 24; i++) 
+        {
             float a = -90.0f + (float)i * 15.0f;
-            while(a < 0.0f) a += 360.0f;
-            while(a >= 360.0f) a -= 360.0f;
-            if(a > red_start && a < red_end) {
-                draw_radial(a, BOOST_HUB_R, 111, 2, c_black);
+            while(a < 0.0f) 
+            {
+                a += 360.0f;
+            }
+            while(a >= 360.0f) 
+            {
+                a -= 360.0f;
+            }
+
+            if(a > red_start && a < red_end) 
+            {
+                draw_radial(a, BOOST_HUB_R, 110, 2, c_black);
             }
         }
     }
 
-    draw_boost_recovery();
-    draw_boost_panel();
+    // Boost 大绿色扇区
+    green_span = 50.0f * progress - 1.0f;
+    if(green_span < 0.0f) 
+    {
+        green_span = 0.0f;
+    }
+    if(green_span > 28.0f)
+    {
+        green_span = 28.0f;
+    } 
+    draw_sector(GAUGE_CX, GAUGE_CY , 103, - green_span, 0.0f, c_boost_green);
+    // //黑色遮罩
+    draw_sector(GAUGE_CX, GAUGE_CY , 30, -50.0f, 0.0f, c_black);
 
-    /* Green recovery wedge grows from the right side and overlays the black
-     * countdown cut-out.  Keep the integer readout on the black part of the
-     * cut-out, as in the reference; the hundredths sit over the green. */
-    green_span = 60.0f * progress - 1.0f;
-    if(green_span < 0.0f) green_span = 0.0f;
-    if(green_span > 34.0f) green_span = 34.0f;
-    draw_sector(GAUGE_CX, GAUGE_CY, 104, 6.0f - green_span,
-                6.0f, c_boost_green);
+
     /* The digit block keeps a black backing, while the green sector stays
      * visible above it, below it and beside the fraction, as in the video. */
     fill_rect(GAUGE_CX + 19, GAUGE_CY - 29, 48, 36, c_black);
     /* The green wedge is clipped at the lower panel edge.  Restore the
      * black lower cut-out and its lower recovery bars underneath it. */
     fill_rect(GAUGE_CX + 21, GAUGE_CY + 10, 85, 20, c_black);
-    draw_boost_recovery();
+    draw_boost_recovery(recovery_end);
     fill_circle(GAUGE_CX, GAUGE_CY, BOOST_HUB_R, c_black);
 
-    /* The green core is a pie chart: it starts at 45 degrees and sweeps
-     * counter-clockwise with elapsed boost time, as in the video. */
-    center_a0 = 45.0f + 45.0f * progress;
-    center_a1 = 45.0f + 360.0f * progress;
-    if(center_a1 > center_a0 + 0.1f) {
-        draw_sector(GAUGE_CX, GAUGE_CY, 14, center_a0, center_a1,
-                    c_boost_green);
+    // Boost 中心绿色扇区
+    center_a1 = 80.0f + 180.0f * progress * 1.8f;//速度系数
+    if((center_a1 > 80.0f)  && ( center_a1 < 260.0f)) 
+    {
+        draw_sector(GAUGE_CX, GAUGE_CY, 15, 80.0f, center_a1,c_boost_green);
+    }
+    else
+    {
+        draw_sector(GAUGE_CX, GAUGE_CY, 15, 80.0f, 260.0f,c_boost_green);
     }
 
     /* A short red leading segment sits just above the green wedge near the
      * end of the countdown, as in the video. */
-    if(progress > 0.55f) {
+    if(progress > 0.55f) 
+    {
         fill_annular(71, 100, -33.0f, -29.3f, 0, c_boost_red);
     }
+
+    draw_boost_Number_bg();
 
     /* One continuous outer yellow band: from the upper-right tip, down the
      * right side, and around to the bottom of the recovery cut-out. */
@@ -1405,7 +1448,7 @@ static void gauge_timer_cb(lv_timer_t *timer)
 
         case MODE_BOOST:
             render_boost(elapsed);
-            if(elapsed >= BOOST_MS) {
+            if(elapsed >= BOOST_DURATION_MS) {
                 s_main_next = MODE_SPIRAL;
                 set_mode(MODE_MAIN);
             }
