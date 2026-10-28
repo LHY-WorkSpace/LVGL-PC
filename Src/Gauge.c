@@ -22,6 +22,7 @@
 
 #include <math.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -54,6 +55,13 @@ LV_FONT_DECLARE(ui_font_Seg48)
  * border and the digit positions must not move.  All positions are derived
  * from the gauge centre (GAUGE_CX / GAUGE_CY). */
 #define BOOST_HUB_R        18
+
+/* Lower-right recovery bars: equal width and equal gaps.  Change these four
+ * values and the bar angles are calculated automatically. */
+#define BOOST_RECOVERY_COUNT  5
+#define BOOST_RECOVERY_START  21.0f
+#define BOOST_RECOVERY_END    70.5f
+#define BOOST_RECOVERY_GAP     1.0f
 
 typedef enum {
     MODE_BOOT = 0,
@@ -480,9 +488,9 @@ static void fill_annular(int r_in, int r_out, float a0, float a1, int pattern, l
 
 static void draw_outer_rings(void)
 {
-    draw_arc(GAUGE_CX, GAUGE_CY, 118, 2, 0, 360, c_white);
-    draw_arc(GAUGE_CX, GAUGE_CY, 115, 2, 0, 360, c_white);
-    draw_arc(GAUGE_CX, GAUGE_CY, 112, 2, 0, 360, c_blue);
+    draw_arc(GAUGE_CX, GAUGE_CY, 119, 2, 0, 360, c_white);
+    draw_arc(GAUGE_CX, GAUGE_CY, 114, 2, 0, 360, c_white);
+    // draw_arc(GAUGE_CX, GAUGE_CY, 113, 2, 0, 360, c_blue);
 }
 
 static void draw_radial(float angle, int r0, int r1, int t, lv_color_t c)
@@ -1107,27 +1115,36 @@ static void draw_boost_bracket(void)
 
 
     // 黄色外侧圆弧上段扩展
-    draw_arc(GAUGE_CX, GAUGE_CY, 106, 8, -45.0f,-30.0f, c_boost_yellow);
+    draw_arc(GAUGE_CX, GAUGE_CY, 106, 8, -30.0f,-45.0f, c_boost_yellow);
+
     // 黄色外侧圆弧
-    draw_arc(GAUGE_CX, GAUGE_CY, 108, 6, -45.0f, 75.0f, c_boost_yellow);
+    draw_arc(GAUGE_CX, GAUGE_CY, 108, 6, -45.0f, 9.0f, c_boost_yellow);
+
+    // 黄色外侧圆弧
+    draw_arc(GAUGE_CX, GAUGE_CY, 108, 6, 21.0f, 75.0f, c_boost_yellow);
+
+    // 黄色外侧圆弧
+    draw_arc(GAUGE_CX, GAUGE_CY, 108, 6, 10.0f, 20.0f, c_boost_yellow);
 
 }
 
 static void draw_boost_recovery(float visible_end)
 {
-    static const float a0s[5] = {25.0f, 31.5f, 41.0f, 51.0f, 60.5f};
-    static const float a1s[5] = {29.5f, 39.0f, 49.0f, 58.5f, 70.5f};
+    const float span = BOOST_RECOVERY_END - BOOST_RECOVERY_START;
+    const float bar_width = (span - (BOOST_RECOVERY_COUNT - 1) * BOOST_RECOVERY_GAP)
+                            / (float)BOOST_RECOVERY_COUNT;
+    const float pitch = bar_width + BOOST_RECOVERY_GAP;
     int i;
 
-    /* Five recovery bars matching the reference angular spacing.  Below five
-     * seconds the bars retract from the high-angle side, like the main fan. */
-    for(i = 0; i < 5; i++) 
-    {
-        float a1 = a1s[i];
+    /* Count, start, end and gap are configured above; widths and spacing are
+     * derived automatically.  Below five seconds the bars retract from the
+     * high-angle side, like the main fan. */
+    for(i = 0; i < BOOST_RECOVERY_COUNT; i++) {
+        float a0 = BOOST_RECOVERY_START + (float)i * pitch;
+        float a1 = a0 + bar_width;
         if(a1 > visible_end) a1 = visible_end;
-        if(a1 > a0s[i]) 
-        {
-            fill_annular(74, 104, a0s[i], a1, 0, c_boost_red);
+        if(a1 > a0) {
+            fill_annular(80, 98, a0, a1, 0, c_boost_red);
         }
     }
 }
@@ -1151,23 +1168,27 @@ static void render_boost(uint32_t elapsed)
     if(remain < 0.0f) remain = 0.0f;
     if(remain > 1.0f) remain = 1.0f;
     progress = 1.0f - remain;
-
+#if !defined(ESP_PLATFORM)
+    printf("progress: %f, remain: %f , elapsed: %u\n", progress, remain, elapsed);
+#endif
     /* Keep all five bars until five seconds remain, then retract them from
      * 70.5 degrees down to their 25 degree start. */
-    recovery_end = 70.5f;
+    recovery_end = BOOST_RECOVERY_END;
     if(remain < 0.25f) 
     {
-        recovery_end = 25.0f + 45.5f * (remain / 0.25f);
+        recovery_end = BOOST_RECOVERY_START +(BOOST_RECOVERY_END - BOOST_RECOVERY_START) *(remain / 0.25f);
     }
 
     clear_fb(c_black);
 
-    /* Faint unlit spokes remain visible through the whole dial, as in the
-     * video.  The red fan only covers the sector that is still active. */
+    //黑色背景刻度分隔线
     for(i = 0; i < 24; i++) 
     {
-        draw_radial(-90.0f + (float)i * 15.0f, BOOST_HUB_R, 111, 1, c_spoke);
+        draw_radial(-90.0f + (float)i * 15.0f, BOOST_HUB_R, 111, 2, c_spoke);// c_cyan c_spoke
     }
+    // 黑色背景刻度分隔线遮罩
+    draw_sector(GAUGE_CX, GAUGE_CY , 120, -30.0f, 75.0f, c_black);
+
 
     // 红色大刻度
     red_start = 76.0f;
@@ -1197,18 +1218,18 @@ static void render_boost(uint32_t elapsed)
     }
 
     // Boost 大绿色扇区
-    green_span = 50.0f * progress - 1.0f;
-    if(green_span < 0.0f) 
+    if(progress <= 0.76f)
     {
-        green_span = 0.0f;
+        green_span = 29.0f * progress/0.76f;
     }
-    if(green_span > 28.0f)
+    else
     {
-        green_span = 28.0f;
-    } 
+        green_span = 29.0f;
+    }
+    
     draw_sector(GAUGE_CX, GAUGE_CY , 103, - green_span, 0.0f, c_boost_green);
     // //黑色遮罩
-    draw_sector(GAUGE_CX, GAUGE_CY , 30, -50.0f, 0.0f, c_black);
+    draw_sector(GAUGE_CX, GAUGE_CY , 30, -30.0f, 0.0f, c_black);
 
 
     /* The digit block keeps a black backing, while the green sector stays
@@ -1231,13 +1252,21 @@ static void render_boost(uint32_t elapsed)
         draw_sector(GAUGE_CX, GAUGE_CY, 15, 80.0f, 260.0f,c_boost_green);
     }
 
-    /* A short red leading segment sits just above the green wedge near the
-     * end of the countdown, as in the video. */
-    if(progress > 0.55f) 
+    // 倒数5秒后，红色扇区开始从上方逐渐延伸 (21-5)/21 = 0.76
+    if(progress > 0.76f)
     {
-        fill_annular(71, 100, -33.0f, -29.3f, 0, c_boost_red);
+        float lead_a0;
+        float lead_a1;
+
+        lead_a1 = 15.0f*(progress - 0.76f) / 0.24f;
+        if(lead_a1 > 15.0f) 
+        {
+            lead_a1 = 15.0f;
+        }
+        fill_annular(45, 100, -30.0f, -(30.0f + lead_a1), 0, c_red);
     }
 
+    //数字区背景遮罩
     draw_boost_Number_bg();
 
     /* One continuous outer yellow band: from the upper-right tip, down the
