@@ -43,7 +43,7 @@ LV_FONT_DECLARE(ui_font_Seg48)
 // #define MAIN_MS            8500u
 #define BOOT_MS            2200u
 #define MAIN_MS            2500u
-#define SPIRAL_MS          7000u
+#define SPIRAL_MS          6200u
 
 
 //一段Boost 总时长
@@ -129,6 +129,7 @@ static lv_color_t c_band_yellow;
 static lv_color_t c_band_red;
 static lv_color_t c_band_magenta;
 static lv_color_t c_red_deep;
+static lv_color_t c_spiral_orange;
 static lv_color_t c_boost_yellow;
 static lv_color_t c_boost_green;
 static lv_color_t c_boost_red;
@@ -535,7 +536,8 @@ static void set_hidden(lv_obj_t *obj, int hidden)
  * fonts are 40/48 px and are too large for the compact hub at 240x240. */
 static void draw_seg_digit_sized(int x, int y, int w, int h, int t, int digit, lv_color_t c)
 {
-    static const uint8_t seg[10] = {
+    static const uint8_t seg[10] = 
+    {
         0x3F, 0x06, 0x5B, 0x4F, 0x66, 0x6D, 0x7D, 0x07, 0x7F, 0x6F
     };
     uint8_t m;
@@ -1117,6 +1119,9 @@ static void draw_boost_bracket(void)
     // 黄色外侧圆弧上段扩展
     draw_arc(GAUGE_CX, GAUGE_CY, 106, 8, -30.0f,-45.0f, c_boost_yellow);
 
+    // 黄色外侧圆弧上段扩展
+    draw_arc(GAUGE_CX, GAUGE_CY, 102, 8, -42.0f,-45.0f, c_boost_yellow);
+
     // 黄色外侧圆弧
     draw_arc(GAUGE_CX, GAUGE_CY, 108, 6, -45.0f, 9.0f, c_boost_yellow);
 
@@ -1305,95 +1310,193 @@ static void create_boost_layer(void)
 /* Spiral screen                                                              */
 /* ------------------------------------------------------------------------- */
 
-static void draw_spiral_holes(void)
+static void draw_spiral_holes(uint32_t elapsed)
 {
+    /* Video reference: 24 holes every 15 degrees, on two alternating radii.
+     * The white pulse fills them counter-clockwise from the upper-left. */
+    int lit_count = 0;
     int i;
-    for(i = 0; i < 18; i++) {
-        float a = -90.0f + (float)i * 20.0f;
+
+    if(elapsed >= 100u && elapsed < 5100u) {
+        uint32_t cycle_ms = (elapsed - 100u) % 1000u;
+
+        if(cycle_ms >= 20u) {
+            lit_count = 1 + (int)((cycle_ms - 20u) / 25u);
+            if(lit_count > 24) lit_count = 24;
+        }
+    }
+
+    for(i = 0; i < 24; i++) {
+        float a = -105.0f - (float)i * 15.0f;
         int id = angle_index(a);
-        int x = GAUGE_CX + (90 * s_cos[id]) / 4096;
-        int y = GAUGE_CY + (90 * s_sin[id]) / 4096;
-        fill_circle(x, y, 11, c_black);
-        draw_arc(x, y, 11, 1, 0, 360, c_blue);
-        fill_circle(x, y, 8, c_black);
+        int r = (i & 1) ? 89 : 84;
+        int x = GAUGE_CX + (r * s_cos[id]) / 4096;
+        int y = GAUGE_CY + (r * s_sin[id]) / 4096;
+
+        if(i < lit_count) {
+            /* Lit dots are plain white circles.  No blue rim is drawn. */
+            fill_circle(x, y, 11, c_white);
+        } else {
+            /* Dark holes are also drawn without a blue rim. */
+            fill_circle(x, y, 11, c_black);
+        }
     }
 }
+
 
 static void draw_spiral_small_triangles(void)
 {
+    /* Video: 24 tiny triangles in the gaps between the 24 holes, pointing
+     * inward.  Holes are every 15 degrees, so the gaps are offset by 7.5. */
+    const float start_angle = -97.5f;
+    const float step_angle = 15.0f;
+    const float half_angle = 2.0f;
+    const int base_r = 100;
+    const int apex_r = 94;
     int i;
-    for(i = 0; i < 18; i++) {
-        float a = -90.0f + (float)i * 20.0f + 10.0f;
-        int id = angle_index(a);
-        int id1 = angle_index(a - 2.5f);
-        int id2 = angle_index(a + 2.5f);
-        int x0 = GAUGE_CX + (102 * s_cos[id]) / 4096;
-        int y0 = GAUGE_CY + (102 * s_sin[id]) / 4096;
-        int x1 = GAUGE_CX + (96 * s_cos[id1]) / 4096;
-        int y1 = GAUGE_CY + (96 * s_sin[id1]) / 4096;
-        int x2 = GAUGE_CX + (96 * s_cos[id2]) / 4096;
-        int y2 = GAUGE_CY + (96 * s_sin[id2]) / 4096;
+
+    for(i = 0; i < 24; i++) 
+    {
+        float a = start_angle + (float)i * step_angle;
+        int id0 = angle_index(a - half_angle);
+        int id1 = angle_index(a + half_angle);
+        int ida = angle_index(a);
+        int x0 = GAUGE_CX + (base_r * s_cos[id0]) / 4096;
+        int y0 = GAUGE_CY + (base_r * s_sin[id0]) / 4096;
+        int x1 = GAUGE_CX + (base_r * s_cos[id1]) / 4096;
+        int y1 = GAUGE_CY + (base_r * s_sin[id1]) / 4096;
+        int x2 = GAUGE_CX + (apex_r * s_cos[ida]) / 4096;
+        int y2 = GAUGE_CY + (apex_r * s_sin[ida]) / 4096;
         fill_triangle(x0, y0, x1, y1, x2, y2, c_blue);
     }
 }
 
-static void draw_spiral_big_triangles(void)
+static void draw_spiral_big_triangles(uint32_t elapsed)
 {
+    float grow = (float)elapsed / 500.0f;
+    float apex_r;
     int i;
-    for(i = 0; i < 4; i++) {
+
+    if(grow < 0.0f) grow = 0.0f;
+    if(grow > 1.0f) grow = 1.0f;
+
+    /* The base is on the outer rim; the tip grows inward during the first
+     * 200 ms, just like the video. */
+    apex_r = 104.0f - 22.0f * grow;
+
+    for(i = 0; i < 4; i++) 
+    {
         float a = (float)i * 90.0f;
-        int id = angle_index(a);
-        int id1 = angle_index(a - 10.0f);
-        int id2 = angle_index(a + 10.0f);
-        int x0 = GAUGE_CX + (102 * s_cos[id]) / 4096;
-        int y0 = GAUGE_CY + (102 * s_sin[id]) / 4096;
-        int x1 = GAUGE_CX + (82 * s_cos[id1]) / 4096;
-        int y1 = GAUGE_CY + (82 * s_sin[id1]) / 4096;
-        int x2 = GAUGE_CX + (82 * s_cos[id2]) / 4096;
-        int y2 = GAUGE_CY + (82 * s_sin[id2]) / 4096;
+        int id0 = angle_index(a - 5.5f);
+        int id1 = angle_index(a + 5.5f);
+        int ida = angle_index(a);
+        int x0 = GAUGE_CX + (int)(104.0f * (float)s_cos[id0] / 4096.0f);
+        int y0 = GAUGE_CY + (int)(104.0f * (float)s_sin[id0] / 4096.0f);
+        int x1 = GAUGE_CX + (int)(104.0f * (float)s_cos[id1] / 4096.0f);
+        int y1 = GAUGE_CY + (int)(104.0f * (float)s_sin[id1] / 4096.0f);
+        int x2 = GAUGE_CX + (int)(apex_r * (float)s_cos[ida] / 4096.0f);
+        int y2 = GAUGE_CY + (int)(apex_r * (float)s_sin[ida] / 4096.0f);
         fill_triangle(x0, y0, x1, y1, x2, y2, c_blue);
     }
 }
 
-static void draw_spiral_inner(void)
+static void draw_spiral_inner(uint32_t elapsed)
 {
+    float green_end = 314.0f;
     int i;
 
-    draw_arc(GAUGE_CX, GAUGE_CY, 66, 3, 0, 360, c_yellow);
-    draw_arc(GAUGE_CX, GAUGE_CY, 57, 11, 0, 360, c_green);
+    if(elapsed > 500u) {
+        green_end = 314.0f - 52.0f * ((float)(elapsed - 500u) / 1000.0f);
+    }
+    if(green_end < 76.0f) green_end = 76.0f;
 
-    for(i = 0; i < 16; i++) {
-        draw_radial(-90.0f + (float)i * 22.5f, 51, 63, 2, c_black);
+    fill_circle(GAUGE_CX, GAUGE_CY, 50, c_black);
+
+    /* Blue STOP band first; green arc shrinks and reveals more blue. */
+    draw_arc(GAUGE_CX, GAUGE_CY, 35, 14, 0, 360, c_blue);
+    if(green_end > 76.0f) {
+        draw_arc(GAUGE_CX, GAUGE_CY, 35, 14, 76.0f, green_end, c_green);
     }
 
-    /* Blue STOP wedge on the lower-right of the segmented ring. */
-    draw_arc(GAUGE_CX, GAUGE_CY, 57, 11, 12.0f, 82.0f, c_blue);
+    for(i = 0; i < 16; i++) 
+    {
+        draw_radial(-90.0f + (float)i * 22.5f, 27, 43, 2, c_black);
+    }
 
-    fill_circle(GAUGE_CX, GAUGE_CY, 36, c_black);
-    draw_arc(GAUGE_CX, GAUGE_CY, 36, 1, 0, 360, c_gray);
+    draw_arc(GAUGE_CX, GAUGE_CY, 46, 3, 0, 360, c_yellow);
+    draw_arc(GAUGE_CX, GAUGE_CY, 25, 3, 0, 360, c_yellow);
+    draw_arc(GAUGE_CX, GAUGE_CY, 23, 1, 0, 360, c_gray);
+}
+
+static void draw_spiral_sectors(uint32_t elapsed)
+{
+    static const float sector_start[5] = {55.0f, 127.0f, 199.0f, 271.0f, 343.0f};
+    /* Sector index -> retract position (0 = first). */
+    static const int retire_pos[5] = {2, 1, 0, 4, 3};
+    const float sector_width = 70.0f;
+    const float outer_r_full = 101.0f;
+    const float outer_r_end = 47.0f;
+    const float retract_ms = 180.0f;
+    int i;
+
+    /* Gray dividers under the five sectors, centered in the 2-degree gaps. */
+    for(i = 0; i < 5; i++)
+    {
+        draw_radial(sector_start[i] - 1.0f, 47, 102, 2, c_spoke);
+    }
+
+    for(i = 0; i < 5; i++)
+    {
+        float start_ms = 950.0f + (float)retire_pos[i] * 1000.0f;
+        float outer_r = outer_r_full;
+
+        if((float)elapsed >= start_ms) 
+        {
+            float p = ((float)elapsed - start_ms) / retract_ms;
+
+            if(p >= 1.0f) continue;
+            outer_r = outer_r_full - (outer_r_full - outer_r_end) * p;
+        }
+
+        draw_sector(GAUGE_CX, GAUGE_CY, (int)outer_r,
+                    sector_start[i], sector_start[i] + sector_width,
+                    c_spiral_orange);
+    }
 }
 
 static void render_spiral(uint32_t elapsed)
 {
-    float rot = fmodf(270.0f + (float)elapsed * 45.0f / 1000.0f, 360.0f);
-    int count = 6 - (int)(elapsed / 1000u);
+    int count = 6 - (int)((elapsed + 800u) / 1000u);
+
     if(count < 0) count = 0;
 
     clear_fb(c_black);
 
-    draw_sector(GAUGE_CX, GAUGE_CY, 101, rot, rot + 90.0f, c_orange);
-    draw_sector(GAUGE_CX, GAUGE_CY, 101, rot + 180.0f, rot + 270.0f, c_orange);
+    //5扇区缩放动画
+    draw_spiral_sectors(elapsed);
 
-    draw_spiral_holes();
-    draw_arc(GAUGE_CX, GAUGE_CY, 102, 3, 0, 360, c_black);
+    //白点动画
+    draw_spiral_holes(elapsed);
+
+    // draw_arc(GAUGE_CX, GAUGE_CY, 102, 3, 0, 360, c_cyan);
+    // 黄色外轮廓圆
     draw_arc(GAUGE_CX, GAUGE_CY, 106, 7, 0, 360, c_yellow);
-    draw_spiral_small_triangles();
-    draw_spiral_big_triangles();
 
+    //延迟300m后显示小蓝三角
+    if(elapsed > 300u) 
+    {
+        draw_spiral_small_triangles();
+    }
+    //显示大蓝三角
+    draw_spiral_big_triangles(elapsed);
+
+    //双白色外侧轮廓
     draw_outer_rings();
 
-    draw_spiral_inner();
+    //
+    draw_spiral_inner(elapsed);
 
+    //中心数字
     draw_seg_digit_sized(111, 104, 18, 32, 3, count, c_white);
     lv_obj_invalidate(s_canvas);
 }
@@ -1402,7 +1505,7 @@ static void create_spiral_layer(void)
 {
     s_spiral_layer = make_layer();
     s_stop_label = make_label(s_spiral_layer, "STOP", &lv_font_montserrat_8,
-                              0xFFFFFF, 138, 148, 38, 10, LV_TEXT_ALIGN_CENTER);
+                              0xFFFFFF, 136, 137, 40, 10, LV_TEXT_ALIGN_CENTER);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -1529,6 +1632,7 @@ void Gauge_Init(void)
     c_blue       = lv_color_hex(0x1038F0);
     c_cyan       = lv_color_hex(0x00A8E0);
     c_orange     = lv_color_hex(0xFF5A00);
+    c_spiral_orange = lv_color_hex(0xE82C00);
     c_red        = lv_color_hex(0xF00000);
     c_yellow     = lv_color_hex(0xFFD400);
     c_green      = lv_color_hex(0x00B050);
