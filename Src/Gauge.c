@@ -33,6 +33,12 @@ LV_FONT_DECLARE(ui_font_Seg48)
 #define GAUGE_H       240
 #define GAUGE_CX      120
 #define GAUGE_CY      120
+
+/* Countdown digit layout: Boost position -> final/Spiral position. */
+#define COUNT_START_CX (GAUGE_CX + 50)
+#define COUNT_START_CY (GAUGE_CY - 13)
+#define COUNT_END_CX   (GAUGE_CX)
+#define COUNT_END_CY   (GAUGE_CY)
 #define GAUGE_PI      3.14159265358979323846f
 
 #define MAIN_R_OUT    108
@@ -49,6 +55,7 @@ LV_FONT_DECLARE(ui_font_Seg48)
 //一段Boost 总时长
 #define BOOST_DISPLAY_SEC  21.0f
 #define BOOST_DURATION_MS  ((uint32_t)(BOOST_DISPLAY_SEC * 1000.0f + 0.5f))
+#define BOOST_SPIRAL_TRANSITION_MS 600u
 
 /* The boost countdown frame is fixed.  Only the red fan and the green
  * recovery wedge change while the timer runs; the black cut-out, its yellow
@@ -67,12 +74,14 @@ typedef enum {
     MODE_BOOT = 0,
     MODE_MAIN,
     MODE_BOOST,
+    MODE_BOOST_TO_SPIRAL,
     MODE_SPIRAL
 } gauge_mode_t;
 
 static lv_obj_t *s_canvas;
 static lv_color_t *s_fb;
 static lv_color_t *s_main_bg;
+static lv_color_t *s_transition_bg;
 static uint16_t *s_angle_map;
 
 static lv_obj_t *s_main_layer;
@@ -575,6 +584,18 @@ static void draw_speed_digits(int value)
 
     fill_rect(x - 12, y + 12, 9, 3, c_white);
     fill_rect(x + 74, y + 12, 9, 3, c_white);
+}
+
+static void draw_countdown_font(int x, int y, int w, const char *txt, lv_text_align_t align)
+{
+    lv_draw_label_dsc_t dsc;
+
+    lv_draw_label_dsc_init(&dsc);
+    dsc.font = &ui_font_Seg48;
+    dsc.color = c_white;
+    dsc.opa = LV_OPA_COVER;
+    dsc.align = align;
+    lv_canvas_draw_text(s_canvas, x, y, w, &dsc, txt);
 }
 
 static lv_obj_t *make_layer(void)
@@ -1287,8 +1308,12 @@ static void render_boost(uint32_t elapsed)
 
     lv_label_set_text_fmt(s_boost_frac, ".%02d", hundredths);
 
-    draw_seg_digit_sized(GAUGE_CX + 21, GAUGE_CY - 27, 20, 34, 4, secs / 10, c_white);
-    draw_seg_digit_sized(GAUGE_CX + 45, GAUGE_CY - 27, 20, 34, 4, secs % 10, c_white);
+    {
+        char sec_text[16];
+        snprintf(sec_text, sizeof(sec_text), "%d", secs);
+        draw_countdown_font(COUNT_START_CX - 38, COUNT_START_CY - 16, 50,
+                            sec_text, LV_TEXT_ALIGN_RIGHT);
+    }
     lv_obj_set_pos(s_boost_frac, GAUGE_CX + 66, GAUGE_CY - 8);
     lv_obj_set_pos(s_boost_sec, GAUGE_CX + 28, GAUGE_CY + 11);
 
@@ -1303,7 +1328,7 @@ static void create_boost_layer(void)
                               34, 16, LV_TEXT_ALIGN_LEFT);
     s_boost_sec = make_label(s_boost_layer, "SEC.", &lv_font_montserrat_14,
                              0xFFFFFF, GAUGE_CX, GAUGE_CY + 11,
-                             46, 16, LV_TEXT_ALIGN_CENTER);
+                             52, 16, LV_TEXT_ALIGN_CENTER);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -1335,10 +1360,10 @@ static void draw_spiral_holes(uint32_t elapsed)
 
         if(i < lit_count) {
             /* Lit dots are plain white circles.  No blue rim is drawn. */
-            fill_circle(x, y, 11, c_white);
+            fill_circle(x, y, 9, c_white);
         } else {
             /* Dark holes are also drawn without a blue rim. */
-            fill_circle(x, y, 11, c_black);
+            fill_circle(x, y, 9, c_black);
         }
     }
 }
@@ -1397,6 +1422,25 @@ static void draw_spiral_big_triangles(uint32_t elapsed)
         int x2 = GAUGE_CX + (int)(apex_r * (float)s_cos[ida] / 4096.0f);
         int y2 = GAUGE_CY + (int)(apex_r * (float)s_sin[ida] / 4096.0f);
         fill_triangle(x0, y0, x1, y1, x2, y2, c_blue);
+    }
+
+    /* Two solid blue bars touching the outer yellow ring at 9 and 3 o'clock,
+     * appearing with the big triangles. */
+    {
+        int bw = (int)(10.0f * grow + 0.5f);
+        int bh = (int)(4.0f * grow + 0.5f);
+        int r = 55;
+        int y;
+
+        if(bw >= 4 && bh >= 2) {
+            int y0 = GAUGE_CY - bh / 2;
+            int x0 = GAUGE_CX - r - bw / 2;
+            int x1 = GAUGE_CX + r - bw / 2;
+
+            y = y0;
+            fill_rect(x0, y, bw, bh, c_blue);
+            fill_rect(x1, y, bw, bh, c_blue);
+        }
     }
 }
 
@@ -1497,7 +1541,12 @@ static void render_spiral(uint32_t elapsed)
     draw_spiral_inner(elapsed);
 
     //中心数字
-    draw_seg_digit_sized(111, 104, 18, 32, 3, count, c_white);
+    {
+        char count_text[16];
+        snprintf(count_text, sizeof(count_text), "%d", count);
+        draw_countdown_font(COUNT_END_CX - 25, COUNT_END_CY - 16, 50,
+                            count_text, LV_TEXT_ALIGN_CENTER);
+    }
     lv_obj_invalidate(s_canvas);
 }
 
@@ -1506,6 +1555,98 @@ static void create_spiral_layer(void)
     s_spiral_layer = make_layer();
     s_stop_label = make_label(s_spiral_layer, "STOP", &lv_font_montserrat_8,
                               0xFFFFFF, 136, 137, 40, 10, LV_TEXT_ALIGN_CENTER);
+}
+
+static void render_boost_spiral_transition(uint32_t elapsed)
+{
+    float p = (float)elapsed / (float)BOOST_SPIRAL_TRANSITION_MS;
+    float q = p / 0.80f;
+
+    if(p < 0.0f) p = 0.0f;
+    if(p > 1.0f) p = 1.0f;
+    if(q < 0.0f) q = 0.0f;
+    if(q > 1.0f) q = 1.0f;
+
+    /* Keep a snapshot of the Boost frame, then build the transition on a
+     * black layer.  The layer is mixed over Boost with increasing opacity. */
+    render_boost(BOOST_DURATION_MS - 1u);
+    /* Remove the Boost digits from the fading base; the digits are redrawn
+     * separately and move with the closing ring. */
+    fill_rect(GAUGE_CX + 19, GAUGE_CY - 29, 48, 36, c_black);
+    memcpy(s_transition_bg, s_fb, GAUGE_W * GAUGE_H * sizeof(lv_color_t));
+    clear_fb(c_black);
+    draw_outer_rings();
+
+    {
+        const float arc_start = BOOST_RECOVERY_START;
+        const float arc_initial_end = BOOST_RECOVERY_END;
+        const float close_angle = -123.0f;
+        float red_start = arc_start + (close_angle - arc_start) * q;
+        float red_end = arc_initial_end +
+                        ((close_angle + 360.0f) - arc_initial_end) * q;
+
+        fill_annular(47, 101, red_start, red_end, 0, c_spiral_orange);
+    }
+
+    {
+        /* Start with the existing right-side yellow border.  Its two ends
+         * grow around the circle and meet at the upper-left. */
+        float arc_start = -45.0f - 78.0f * q;
+        float arc_span = 120.0f + 240.0f * q;
+        float hub_r = 106.0f - 70.0f * q;
+        float hub_w = 7.0f - 2.0f * q;
+
+        if(hub_r < 50.0f) hub_r = 50.0f;
+
+        draw_arc(GAUGE_CX, GAUGE_CY, 106, 7,
+                 arc_start, arc_start + arc_span, c_yellow);
+
+        draw_arc(GAUGE_CX, GAUGE_CY, hub_r, hub_w,
+                 arc_start, arc_start + arc_span, c_yellow);
+    }
+
+    {
+        lv_opa_t label_opa = (lv_opa_t)((1.0f - q) * 255.0f + 0.5f);
+        uint8_t mix = (uint8_t)(q * 255.0f + 0.5f);
+        int px;
+
+        lv_obj_set_style_opa(s_boost_frac, label_opa, 0);
+        lv_obj_set_style_opa(s_boost_sec, label_opa, 0);
+
+        for(px = 0; px < GAUGE_W * GAUGE_H; px++) {
+            s_fb[px] = lv_color_mix(s_fb[px], s_transition_bg[px], mix);
+        }
+    }
+
+    /* Keep the countdown digits visible and move/scale them toward the
+     * center together with the closing yellow ring. */
+    {
+        float cx = (float)COUNT_START_CX +
+                   (float)(COUNT_END_CX - COUNT_START_CX) * q;
+        float cy = (float)COUNT_START_CY +
+                   (float)(COUNT_END_CY - COUNT_START_CY) * q;
+
+        draw_countdown_font((int)(cx - 25.0f), (int)(cy - 16.0f), 50,
+                            "0", LV_TEXT_ALIGN_CENTER);
+    }
+
+    /* After the arcs close, fade the Spiral holes and blue triangles in
+     * gradually over the whole face. */
+    if(p > 0.82f) {
+        float fq = (p - 0.82f) / 0.18f;
+        float fade = fq * fq * (3.0f - 2.0f * fq);
+        uint8_t mix = (uint8_t)(fade * 255.0f + 0.5f);
+        int px;
+
+        memcpy(s_transition_bg, s_fb, GAUGE_W * GAUGE_H * sizeof(lv_color_t));
+        render_spiral(0);
+
+        for(px = 0; px < GAUGE_W * GAUGE_H; px++) {
+            s_fb[px] = lv_color_mix(s_fb[px], s_transition_bg[px], mix);
+        }
+    }
+
+    lv_obj_invalidate(s_canvas);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -1548,6 +1689,12 @@ static void set_mode(gauge_mode_t mode)
     else if(mode == MODE_BOOST) 
     {
         set_hidden(s_boost_layer, 0);
+        lv_obj_set_style_opa(s_boost_frac, LV_OPA_COVER, 0);
+        lv_obj_set_style_opa(s_boost_sec, LV_OPA_COVER, 0);
+    }
+    else if(mode == MODE_BOOST_TO_SPIRAL) 
+    {
+        set_hidden(s_boost_layer, 0);
     }
     else if(mode == MODE_SPIRAL) 
     {
@@ -1581,8 +1728,15 @@ static void gauge_timer_cb(lv_timer_t *timer)
         case MODE_BOOST:
             render_boost(elapsed);
             if(elapsed >= BOOST_DURATION_MS) {
-                s_main_next = MODE_SPIRAL;
-                set_mode(MODE_MAIN);
+                set_mode(MODE_BOOST_TO_SPIRAL);
+            }
+            break;
+
+        case MODE_BOOST_TO_SPIRAL:
+            render_boost_spiral_transition(elapsed);
+            if(elapsed >= BOOST_SPIRAL_TRANSITION_MS) {
+                s_main_next = MODE_BOOST;
+                set_mode(MODE_SPIRAL);
             }
             break;
 
@@ -1654,8 +1808,9 @@ void Gauge_Init(void)
 
     s_fb = (lv_color_t *)GAUGE_MALLOC(GAUGE_W * GAUGE_H * sizeof(lv_color_t));
     s_main_bg = (lv_color_t *)GAUGE_MALLOC(GAUGE_W * GAUGE_H * sizeof(lv_color_t));
+    s_transition_bg = (lv_color_t *)GAUGE_MALLOC(GAUGE_W * GAUGE_H * sizeof(lv_color_t));
     s_angle_map = (uint16_t *)GAUGE_MALLOC(GAUGE_W * GAUGE_H * sizeof(uint16_t));
-    if(s_fb == NULL || s_main_bg == NULL || s_angle_map == NULL) 
+    if(s_fb == NULL || s_main_bg == NULL || s_transition_bg == NULL || s_angle_map == NULL) 
     {
         LV_LOG_ERROR("Gauge: framebuffer allocation failed");
         return;
