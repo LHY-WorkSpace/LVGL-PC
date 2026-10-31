@@ -53,9 +53,9 @@ LV_FONT_DECLARE(ui_font_Seg48)
 
 
 //一段Boost 总时长
-#define BOOST_DISPLAY_SEC  21.0f
+#define BOOST_DISPLAY_SEC  22.0f
 #define BOOST_DURATION_MS  ((uint32_t)(BOOST_DISPLAY_SEC * 1000.0f + 0.5f))
-#define BOOST_SPIRAL_TRANSITION_MS 600u
+#define BOOST_SPIRAL_TRANSITION_MS 500u
 
 /* The boost countdown frame is fixed.  Only the red fan and the green
  * recovery wedge change while the timer runs; the black cut-out, its yellow
@@ -74,14 +74,16 @@ typedef enum {
     MODE_BOOT = 0,
     MODE_MAIN,
     MODE_BOOST,
-    MODE_BOOST_TO_SPIRAL,
-    MODE_SPIRAL
+    MODE_BOOST_TO_SPIRAL
 } gauge_mode_t;
 
 static lv_obj_t *s_canvas;
 static lv_color_t *s_fb;
 static lv_color_t *s_main_bg;
 static lv_color_t *s_transition_bg;
+static lv_color_t *s_spiral_snapshot;
+static int s_transition_snapshots_ready;
+static int s_spiral_phase;
 static uint16_t *s_angle_map;
 
 static lv_obj_t *s_main_layer;
@@ -1449,27 +1451,42 @@ static void draw_spiral_inner(uint32_t elapsed)
     float green_end = 314.0f;
     int i;
 
-    if(elapsed > 500u) {
+    if(elapsed > 500u) 
+    {
         green_end = 314.0f - 52.0f * ((float)(elapsed - 500u) / 1000.0f);
     }
     if(green_end < 76.0f) green_end = 76.0f;
 
     fill_circle(GAUGE_CX, GAUGE_CY, 50, c_black);
 
-    /* Blue STOP band first; green arc shrinks and reveals more blue. */
-    draw_arc(GAUGE_CX, GAUGE_CY, 35, 14, 0, 360, c_blue);
-    if(green_end > 76.0f) {
-        draw_arc(GAUGE_CX, GAUGE_CY, 35, 14, 76.0f, green_end, c_green);
-    }
+    /* Black segmented ring; only the right-hand STOP arc is blue. */
+    draw_arc(GAUGE_CX, GAUGE_CY, 35, 14, 0, 360, c_black);
 
+    /* Dividers on the black background and between green segments. */
     for(i = 0; i < 16; i++) 
     {
-        draw_radial(-90.0f + (float)i * 22.5f, 27, 43, 2, c_black);
+        draw_radial(-90.0f + (float)i * 22.5f, 27, 43, 2, c_spoke);
+    }
+
+    /* Blue is one continuous arc without dividers. */
+    draw_arc(GAUGE_CX, GAUGE_CY, 35, 14, -44.0f, 73.0f, c_blue);
+
+    if(green_end > 76.0f) 
+    {
+        draw_arc(GAUGE_CX, GAUGE_CY, 35, 14, 76.0f, green_end, c_green);
+
+        for(i = 0; i < 16; i++) 
+        {
+            float a = -90.0f + (float)i * 22.5f;
+            if(angle_in_range(a, 76.0f, green_end)) {
+                draw_radial(a, 27, 43, 2, c_spoke);
+            }
+        }
     }
 
     draw_arc(GAUGE_CX, GAUGE_CY, 46, 3, 0, 360, c_yellow);
     draw_arc(GAUGE_CX, GAUGE_CY, 25, 3, 0, 360, c_yellow);
-    draw_arc(GAUGE_CX, GAUGE_CY, 23, 1, 0, 360, c_gray);
+    // draw_arc(GAUGE_CX, GAUGE_CY, 23, 1, 0, 360, c_cyan);
 }
 
 static void draw_spiral_sectors(uint32_t elapsed)
@@ -1554,26 +1571,31 @@ static void create_spiral_layer(void)
 {
     s_spiral_layer = make_layer();
     s_stop_label = make_label(s_spiral_layer, "STOP", &lv_font_montserrat_8,
-                              0xFFFFFF, 136, 137, 40, 10, LV_TEXT_ALIGN_CENTER);
+                              0xFFFFFF, 130, 140, 36, 10, LV_TEXT_ALIGN_CENTER);
 }
 
 static void render_boost_spiral_transition(uint32_t elapsed)
 {
     float p = (float)elapsed / (float)BOOST_SPIRAL_TRANSITION_MS;
-    float q = p / 0.80f;
+    float q = p / 0.65f;
 
     if(p < 0.0f) p = 0.0f;
     if(p > 1.0f) p = 1.0f;
     if(q < 0.0f) q = 0.0f;
     if(q > 1.0f) q = 1.0f;
 
-    /* Keep a snapshot of the Boost frame, then build the transition on a
-     * black layer.  The layer is mixed over Boost with increasing opacity. */
-    render_boost(BOOST_DURATION_MS - 1u);
-    /* Remove the Boost digits from the fading base; the digits are redrawn
-     * separately and move with the closing ring. */
-    fill_rect(GAUGE_CX + 19, GAUGE_CY - 29, 48, 36, c_black);
-    memcpy(s_transition_bg, s_fb, GAUGE_W * GAUGE_H * sizeof(lv_color_t));
+    /* Capture both endpoint frames once.  Rendering Boost and Spiral every
+     * transition frame is too expensive on the ESP32. */
+    if(!s_transition_snapshots_ready) {
+        /* s_fb still contains the last rendered Boost frame. */
+        fill_rect(GAUGE_CX + 19, GAUGE_CY - 29, 48, 36, c_black);
+        memcpy(s_transition_bg, s_fb, GAUGE_W * GAUGE_H * sizeof(lv_color_t));
+
+        render_spiral(0);
+        memcpy(s_spiral_snapshot, s_fb, GAUGE_W * GAUGE_H * sizeof(lv_color_t));
+        s_transition_snapshots_ready = 1;
+    }
+
     clear_fb(c_black);
     draw_outer_rings();
 
@@ -1620,7 +1642,7 @@ static void render_boost_spiral_transition(uint32_t elapsed)
 
     /* Keep the countdown digits visible and move/scale them toward the
      * center together with the closing yellow ring. */
-    {
+    if(p < 0.65f) {
         float cx = (float)COUNT_START_CX +
                    (float)(COUNT_END_CX - COUNT_START_CX) * q;
         float cy = (float)COUNT_START_CY +
@@ -1628,21 +1650,21 @@ static void render_boost_spiral_transition(uint32_t elapsed)
 
         draw_countdown_font((int)(cx - 25.0f), (int)(cy - 16.0f), 50,
                             "0", LV_TEXT_ALIGN_CENTER);
+    } else {
+        draw_countdown_font(COUNT_END_CX - 25, COUNT_END_CY - 16, 50,
+                            "6", LV_TEXT_ALIGN_CENTER);
     }
 
     /* After the arcs close, fade the Spiral holes and blue triangles in
      * gradually over the whole face. */
-    if(p > 0.82f) {
-        float fq = (p - 0.82f) / 0.18f;
+    if(p > 0.75f) {
+        float fq = (p - 0.75f) / 0.25f;
         float fade = fq * fq * (3.0f - 2.0f * fq);
         uint8_t mix = (uint8_t)(fade * 255.0f + 0.5f);
         int px;
 
-        memcpy(s_transition_bg, s_fb, GAUGE_W * GAUGE_H * sizeof(lv_color_t));
-        render_spiral(0);
-
         for(px = 0; px < GAUGE_W * GAUGE_H; px++) {
-            s_fb[px] = lv_color_mix(s_fb[px], s_transition_bg[px], mix);
+            s_fb[px] = lv_color_mix(s_spiral_snapshot[px], s_fb[px], mix);
         }
     }
 
@@ -1695,10 +1717,8 @@ static void set_mode(gauge_mode_t mode)
     else if(mode == MODE_BOOST_TO_SPIRAL) 
     {
         set_hidden(s_boost_layer, 0);
-    }
-    else if(mode == MODE_SPIRAL) 
-    {
-        set_hidden(s_spiral_layer, 0);
+        s_transition_snapshots_ready = 0;
+        s_spiral_phase = 0;
     }
 }
 
@@ -1733,20 +1753,33 @@ static void gauge_timer_cb(lv_timer_t *timer)
             break;
 
         case MODE_BOOST_TO_SPIRAL:
-            render_boost_spiral_transition(elapsed);
-            if(elapsed >= BOOST_SPIRAL_TRANSITION_MS) {
-                s_main_next = MODE_BOOST;
-                set_mode(MODE_SPIRAL);
-            }
-            break;
+        {
+            const uint32_t spiral_offset = BOOST_SPIRAL_TRANSITION_MS;
 
-        case MODE_SPIRAL:
-            render_spiral(elapsed);
-            if(elapsed >= SPIRAL_MS) {
-                s_main_next = MODE_BOOST;
-                set_mode(MODE_MAIN);
+            if(!s_spiral_phase) {
+                if(elapsed < spiral_offset) {
+                    render_boost_spiral_transition(elapsed);
+                } else {
+                    /* Labels switch once; the cached Spiral frame is already
+                     * on screen, so no mode change or extra full render. */
+                    memcpy(s_fb, s_spiral_snapshot,
+                           GAUGE_W * GAUGE_H * sizeof(lv_color_t));
+                    set_hidden(s_boost_layer, 1);
+                    set_hidden(s_spiral_layer, 0);
+                    s_spiral_phase = 1;
+                    lv_obj_invalidate(s_canvas);
+                }
+            } else {
+                uint32_t spiral_elapsed = elapsed - spiral_offset;
+
+                render_spiral(spiral_elapsed);
+                if(spiral_elapsed >= SPIRAL_MS) {
+                    s_main_next = MODE_BOOST;
+                    set_mode(MODE_MAIN);
+                }
             }
             break;
+        }
 
         default:
             break;
@@ -1755,14 +1788,19 @@ static void gauge_timer_cb(lv_timer_t *timer)
 
 void Gauge_TriggerBoost(void)
 {
-    s_main_next = MODE_SPIRAL;
+    s_main_next = MODE_BOOST_TO_SPIRAL;
     set_mode(MODE_BOOST);
 }
 
 void Gauge_TriggerSpiral(void)
 {
     s_main_next = MODE_BOOST;
-    set_mode(MODE_SPIRAL);
+    set_mode(MODE_BOOST_TO_SPIRAL);
+    s_spiral_phase = 1;
+    s_mode_start = lv_tick_get() - BOOST_SPIRAL_TRANSITION_MS;
+    set_hidden(s_boost_layer, 1);
+    set_hidden(s_spiral_layer, 0);
+    render_spiral(0);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -1809,8 +1847,10 @@ void Gauge_Init(void)
     s_fb = (lv_color_t *)GAUGE_MALLOC(GAUGE_W * GAUGE_H * sizeof(lv_color_t));
     s_main_bg = (lv_color_t *)GAUGE_MALLOC(GAUGE_W * GAUGE_H * sizeof(lv_color_t));
     s_transition_bg = (lv_color_t *)GAUGE_MALLOC(GAUGE_W * GAUGE_H * sizeof(lv_color_t));
+    s_spiral_snapshot = (lv_color_t *)GAUGE_MALLOC(GAUGE_W * GAUGE_H * sizeof(lv_color_t));
     s_angle_map = (uint16_t *)GAUGE_MALLOC(GAUGE_W * GAUGE_H * sizeof(uint16_t));
-    if(s_fb == NULL || s_main_bg == NULL || s_transition_bg == NULL || s_angle_map == NULL) 
+    if(s_fb == NULL || s_main_bg == NULL || s_transition_bg == NULL ||
+       s_spiral_snapshot == NULL || s_angle_map == NULL) 
     {
         LV_LOG_ERROR("Gauge: framebuffer allocation failed");
         return;

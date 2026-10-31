@@ -185,6 +185,7 @@ static HWND g_window_handle = NULL;
 static HDC g_buffer_dc_handle = NULL;
 static UINT32* g_pixel_buffer = NULL;
 static SIZE_T g_pixel_buffer_size = 0;
+static CRITICAL_SECTION g_pixel_buffer_lock;
 
 static lv_disp_t* g_display = NULL;
 static bool volatile g_display_refreshing = false;
@@ -245,6 +246,8 @@ EXTERN_C bool lv_win32_init(
     lv_coord_t ver_res,
     HICON icon_handle)
 {
+    InitializeCriticalSection(&g_pixel_buffer_lock);
+
     PWINDOW_THREAD_PARAMETER parameter =
         (PWINDOW_THREAD_PARAMETER)malloc(sizeof(WINDOW_THREAD_PARAMETER));
     parameter->window_mutex = CreateEventExW(NULL, NULL, 0, EVENT_ALL_ACCESS);
@@ -623,6 +626,7 @@ static void lv_win32_display_driver_flush_callback(
 {
     if (lv_disp_flush_is_last(disp_drv))
     {
+        EnterCriticalSection(&g_pixel_buffer_lock);
 #if (LV_COLOR_DEPTH == 32) || \
     (LV_COLOR_DEPTH == 16 && LV_COLOR_16_SWAP == 0) || \
     (LV_COLOR_DEPTH == 8) || \
@@ -653,6 +657,7 @@ static void lv_win32_display_driver_flush_callback(
 #endif
 
         InvalidateRect(g_window_handle, NULL, FALSE);
+        LeaveCriticalSection(&g_pixel_buffer_lock);
     }
 
     lv_disp_flush_ready(disp_drv);
@@ -902,6 +907,7 @@ static LRESULT CALLBACK lv_win32_window_message_callback(
         PAINTSTRUCT ps;
         HDC hdc = BeginPaint(hWnd, &ps);
 
+        EnterCriticalSection(&g_pixel_buffer_lock);
         if (g_display)
         {
             SetStretchBltMode(hdc, HALFTONE);
@@ -925,6 +931,7 @@ static LRESULT CALLBACK lv_win32_window_message_callback(
                     WIN32DRV_MONITOR_ZOOM * g_dpi_value),
                 SRCCOPY);
         }
+        LeaveCriticalSection(&g_pixel_buffer_lock);
 
         EndPaint(hWnd, &ps);
 
